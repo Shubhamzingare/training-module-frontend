@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useParams } from 'react-router-dom';
 import '../styles/TestTakingInterface.css';
 
 const Test = ({ testId: propTestId }) => {
   const { testId: paramTestId } = useParams();
   const testId = propTestId || paramTestId;
-  const navigate = useNavigate();
 
   const [test, setTest] = useState(null);
   const [questions, setQuestions] = useState([]);
@@ -70,6 +69,25 @@ const Test = ({ testId: propTestId }) => {
     }
   }, [test, testId]);
 
+  const handleSubmit = useCallback(async (e) => {
+    if (e) e.preventDefault();
+
+    const newErrors = [];
+    questions.forEach((q, idx) => {
+      if (!answers[q._id] || answers[q._id].length === 0) {
+        newErrors.push(idx);
+      }
+    });
+
+    if (newErrors.length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    setSubmitted(true);
+    // TODO: Submit to API
+  }, [questions, answers]);
+
   // Timer countdown
   useEffect(() => {
     if (timeLeft === null || submitted) return;
@@ -86,7 +104,7 @@ const Test = ({ testId: propTestId }) => {
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, [timeLeft, submitted, test]);
+  }, [timeLeft, submitted, test, handleSubmit]);
 
   const shuffleArray = (array) => {
     const shuffled = [...array];
@@ -120,25 +138,6 @@ const Test = ({ testId: propTestId }) => {
       ...answers,
       [questionId]: newAnswers,
     });
-  };
-
-  const handleSubmit = async (e) => {
-    if (e) e.preventDefault();
-
-    const newErrors = [];
-    questions.forEach((q, idx) => {
-      if (!answers[q._id] || answers[q._id].length === 0) {
-        newErrors.push(idx);
-      }
-    });
-
-    if (newErrors.length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-
-    setSubmitted(true);
-    // TODO: Submit to API
   };
 
   const getAnsweredCount = () => {

@@ -48,8 +48,6 @@ export default function QuestionBuilder({ question, onUpdate, onDelete, onMoveUp
   const toggleCorrectCb = (id) =>
     set({ options: question.options.map(o => o.id === id ? { ...o, isCorrect: !o.isCorrect } : o) });
 
-  const needsOptions = HAS_OPTIONS.includes(question.type);
-
   return (
     <div
       className={`qb-card ${focused ? 'qb-card--active' : ''}`}

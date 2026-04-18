@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import '../../styles/admin/ReportCard.css';
 
 const ReportCard = () => {
@@ -11,23 +11,6 @@ const ReportCard = () => {
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [expandedUser, setExpandedUser] = useState(null);
-
-  // Set default date range (last 30 days)
-  useEffect(() => {
-    const end = new Date();
-    const start = new Date(end.getTime() - 30 * 24 * 60 * 60 * 1000);
-
-    setEndDate(end.toISOString().split('T')[0]);
-    setStartDate(start.toISOString().split('T')[0]);
-    fetchDepartments();
-  }, []);
-
-  // Fetch data when dates change
-  useEffect(() => {
-    if (startDate && endDate) {
-      fetchReportData();
-    }
-  }, [startDate, endDate]);
 
   const fetchDepartments = async () => {
     try {
@@ -44,7 +27,7 @@ const ReportCard = () => {
     }
   };
 
-  const fetchReportData = async () => {
+  const fetchReportData = useCallback(async () => {
     setLoading(true);
     const token = localStorage.getItem('adminToken');
 
@@ -74,7 +57,24 @@ const ReportCard = () => {
     }
 
     setLoading(false);
-  };
+  }, [startDate, endDate]);
+
+  // Set default date range (last 30 days)
+  useEffect(() => {
+    const end = new Date();
+    const start = new Date(end.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    setEndDate(end.toISOString().split('T')[0]);
+    setStartDate(start.toISOString().split('T')[0]);
+    fetchDepartments();
+  }, []);
+
+  // Fetch data when dates change
+  useEffect(() => {
+    if (startDate && endDate) {
+      fetchReportData();
+    }
+  }, [startDate, endDate, fetchReportData]);
 
   // Group sessions by user
   const userSessions = sessions.reduce((acc, session) => {

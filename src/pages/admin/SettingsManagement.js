@@ -5,7 +5,9 @@ const SettingsManagement = () => {
   const [activeTab, setActiveTab] = useState('departments');
   const [departments, setDepartments] = useState([]);
   const [shifts, setShifts] = useState([]);
+  // eslint-disable-next-line no-unused-vars
   const [admins, setAdmins] = useState([]);
+  // eslint-disable-next-line no-unused-vars
   const [loading, setLoading] = useState(false);
   const [user] = useState(JSON.parse(localStorage.getItem('adminUser') || '{}'));
 

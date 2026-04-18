@@ -35,6 +35,7 @@ export default function TestManagementV2({ mode = 'library', onModeChange }) {
   const [test,        setTest]        = useState(null);
   const [form,        setForm]        = useState(BLANK);
   const [categories,  setCategories]  = useState([]);
+  // eslint-disable-next-line no-unused-vars
   const [modules,     setModules]     = useState([]);
   const saveTimer   = useRef(null);
   const creatingRef = useRef(false);
