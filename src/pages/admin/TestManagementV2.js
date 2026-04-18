@@ -23,8 +23,14 @@ const BLANK = {
 
 // mode: 'library' | 'create'
 export default function TestManagementV2({ mode = 'library', onModeChange }) {
-  const token = localStorage.getItem('adminToken');
-  const hdr   = useRef({ Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' });
+  // Always get fresh token from localStorage
+  const getHdr = () => ({
+    Authorization: `Bearer ${localStorage.getItem('adminToken')}`,
+    'Content-Type': 'application/json',
+  });
+  const hdr = { current: getHdr() };
+  // Refresh headers before every use
+  const H = () => getHdr();
 
   const [view,        setView]        = useState('list');
   const [tab,         setTab]         = useState('questions');
@@ -45,7 +51,7 @@ export default function TestManagementV2({ mode = 'library', onModeChange }) {
   const loadTests = useCallback(async () => {
     setListLoading(true);
     try {
-      const r = await fetch(`${API}/tests`, { headers: hdr.current });
+      const r = await fetch(`${API}/tests`, { headers: H() });
       const d = await r.json();
       setTests(d.data || []);
     } catch { /* ignore */ }
@@ -55,10 +61,10 @@ export default function TestManagementV2({ mode = 'library', onModeChange }) {
   useEffect(() => {
     loadTests();
     // load categories
-    fetch(`${API}/categories`, { headers: hdr.current })
+    fetch(`${API}/categories`, { headers: H() })
       .then(r => r.json()).then(d => setCategories(d.data || [])).catch(() => {});
     // load modules
-    fetch(`${API}/modules`, { headers: hdr.current })
+    fetch(`${API}/modules`, { headers: H() })
       .then(r => r.json()).then(d => setModules(d.data || [])).catch(() => {});
   }, [loadTests]);
 
@@ -84,7 +90,7 @@ export default function TestManagementV2({ mode = 'library', onModeChange }) {
     try {
       const r = await fetch(`${API}/tests`, {
         method: 'POST',
-        headers: hdr.current,
+        headers: H(),
         body: JSON.stringify({
           title: 'Untitled Test', description: '',
           totalMarks: 100, passingMarks: 50, timeLimit: 30, status: 'draft',
@@ -92,7 +98,7 @@ export default function TestManagementV2({ mode = 'library', onModeChange }) {
       });
       if (!r.ok) {
         const err = await r.json();
-        throw new Error(err.message || 'Server error');
+        throw new Error(err.message || err.error?.message || `Server error (${r.status})`);
       }
       const d = await r.json();
       openBuilder(d.data);
@@ -107,7 +113,7 @@ export default function TestManagementV2({ mode = 'library', onModeChange }) {
   /* ── open existing ── */
   async function openExisting(id) {
     try {
-      const r = await fetch(`${API}/tests/${id}`, { headers: hdr.current });
+      const r = await fetch(`${API}/tests/${id}`, { headers: H() });
       const d = await r.json();
       openBuilder(d.data);
     } catch { alert('Could not load test.'); }
@@ -143,7 +149,7 @@ export default function TestManagementV2({ mode = 'library', onModeChange }) {
       if (!test?._id) return;
       try {
         await fetch(`${API}/tests/${test._id}`, {
-          method: 'PUT', headers: hdr.current,
+          method: 'PUT', headers: H(),
           body: JSON.stringify(updated),
         });
         setAutoSaveMsg('Saved');
@@ -160,18 +166,18 @@ export default function TestManagementV2({ mode = 'library', onModeChange }) {
       // delete old
       for (const q of (test.questions || [])) {
         if (q._id) await fetch(`${API}/tests/${test._id}/questions/${q._id}`, {
-          method: 'DELETE', headers: hdr.current,
+          method: 'DELETE', headers: H(),
         }).catch(() => {});
       }
       // add new
       for (let i = 0; i < questions.length; i++) {
         await fetch(`${API}/tests/${test._id}/questions`, {
-          method: 'POST', headers: hdr.current,
+          method: 'POST', headers: H(),
           body: JSON.stringify({ ...questions[i], order: i }),
         });
       }
       // reload test
-      const r = await fetch(`${API}/tests/${test._id}`, { headers: hdr.current });
+      const r = await fetch(`${API}/tests/${test._id}`, { headers: H() });
       const d = await r.json();
       setTest(d.data);
     } catch (e) {
@@ -186,7 +192,7 @@ export default function TestManagementV2({ mode = 'library', onModeChange }) {
     if (!test?._id) return;
     const next = test.status === 'draft' ? 'active' : 'draft';
     await fetch(`${API}/tests/${test._id}`, {
-      method: 'PUT', headers: hdr.current,
+      method: 'PUT', headers: H(),
       body: JSON.stringify({ status: next }),
     });
     setTest(t => ({ ...t, status: next }));
@@ -198,7 +204,7 @@ export default function TestManagementV2({ mode = 'library', onModeChange }) {
   async function deleteTest(id, e) {
     e.stopPropagation();
     if (!window.confirm('Delete this test?')) return;
-    await fetch(`${API}/tests/${id}`, { method: 'DELETE', headers: hdr.current });
+    await fetch(`${API}/tests/${id}`, { method: 'DELETE', headers: H() });
     setTests(prev => prev.filter(t => t._id !== id));
     if (test?._id === id) { setView('list'); setTest(null); }
   }
