@@ -1,0 +1,276 @@
+.module-detail-page {
+  min-height: 100vh;
+  background: #f5f7fa;
+  padding: 2rem 0;
+}
+
+/* Unavailable Message */
+.unavailable-message {
+  max-width: 600px;
+  margin: 4rem auto;
+  padding: 3rem;
+  background: white;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.unavailable-message h2 {
+  font-size: 1.8rem;
+  color: #1a202c;
+  margin-bottom: 1rem;
+}
+
+.unavailable-message p {
+  color: #718096;
+  margin-bottom: 2rem;
+  font-size: 1.1rem;
+}
+
+/* Module Container */
+.module-container,
+.test-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+/* Headers */
+.module-header,
+.test-header {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  color: #6366f1;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-bottom: 1rem;
+  padding: 0;
+  font-weight: 600;
+  transition: color 0.2s;
+}
+
+.back-btn:hover {
+  color: #4f46e5;
+  text-decoration: underline;
+}
+
+.module-header h1,
+.test-header h1 {
+  font-size: 2.2rem;
+  color: #1a202c;
+  margin-bottom: 0.5rem;
+  margin-top: 0;
+}
+
+.module-header .description,
+.test-header .description {
+  color: #718096;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+/* Module Content */
+.module-content,
+.test-content {
+  background: white;
+  border-radius: 8px;
+  padding: 2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.module-section {
+  margin-bottom: 3rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.module-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.module-section h2 {
+  font-size: 1.5rem;
+  color: #1a202c;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Key Points */
+.key-points {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.key-points li {
+  padding: 1rem;
+  margin-bottom: 0.8rem;
+  background: #f7fafc;
+  border-left: 4px solid #6366f1;
+  border-radius: 4px;
+  color: #2d3748;
+  line-height: 1.6;
+}
+
+/* FAQs */
+.faqs {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.faq-item {
+  padding: 1.5rem;
+  background: #f7fafc;
+  border-radius: 6px;
+  border-left: 4px solid #a855f7;
+}
+
+.faq-item h3 {
+  margin: 0 0 0.8rem 0;
+  color: #1a202c;
+  font-size: 1.1rem;
+}
+
+.faq-item p {
+  margin: 0;
+  color: #4a5568;
+  line-height: 1.6;
+}
+
+/* File Preview */
+.file-preview {
+  padding: 2rem;
+  background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+  border-radius: 8px;
+  text-align: center;
+  border: 2px dashed #cbd5e0;
+}
+
+.file-preview p {
+  margin: 0 0 1.5rem 0;
+  color: #4a5568;
+  font-size: 1rem;
+}
+
+.file-preview strong {
+  color: #6366f1;
+  font-weight: 600;
+}
+
+.file-preview .btn {
+  display: inline-block;
+}
+
+/* Test Info */
+.test-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.info-card {
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+  border-radius: 8px;
+  text-align: center;
+  border-left: 4px solid #6366f1;
+}
+
+.info-card h3 {
+  margin: 0 0 0.8rem 0;
+  color: #1a202c;
+  font-size: 1.1rem;
+}
+
+.info-card p {
+  margin: 0;
+  color: #6366f1;
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+/* Test Action */
+.test-action {
+  text-align: center;
+  padding: 2rem;
+  background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+  border-radius: 8px;
+}
+
+.btn-large {
+  padding: 1rem 3rem;
+  font-size: 1.1rem;
+  border-radius: 8px;
+  transition: all 0.3s;
+}
+
+.btn-large:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .module-container,
+  .test-container {
+    padding: 0 1rem;
+  }
+
+  .module-header,
+  .test-header {
+    padding: 1.5rem;
+  }
+
+  .module-header h1,
+  .test-header h1 {
+    font-size: 1.6rem;
+  }
+
+  .module-content,
+  .test-content {
+    padding: 1.5rem;
+  }
+
+  .test-info {
+    grid-template-columns: 1fr;
+  }
+
+  .module-section h2 {
+    font-size: 1.3rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .module-detail-page {
+    padding: 1rem 0;
+  }
+
+  .module-header h1,
+  .test-header h1 {
+    font-size: 1.4rem;
+  }
+
+  .key-points li {
+    padding: 0.8rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .btn-large {
+    padding: 0.8rem 1.5rem;
+    font-size: 1rem;
+  }
+}

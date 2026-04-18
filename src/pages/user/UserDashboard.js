@@ -1,6 +1,11 @@
 import React from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
 import useAuth from '../../hooks/useAuth';
+import ModulesPage from './ModulesPage';
+import ModuleViewPage from './ModuleViewPage';
+import TestPage from './TestPage';
+import TestResultPage from './TestResultPage';
+import MyScoresPage from './MyScoresPage';
 import '../../styles/UserDashboard.css';
 
 const UserDashboard = () => {
@@ -19,16 +24,20 @@ const UserDashboard = () => {
       </header>
 
       <nav className="user-nav">
-        <Link to="/">🏠 Home</Link>
-        <Link to="/modules">📖 Modules</Link>
-        <Link to="/my-scores">⭐ My Scores</Link>
+        <Link to="/">📖 Training Modules</Link>
+        <Link to="/modules">📝 Tests</Link>
       </nav>
 
       <main className="user-content">
         <Routes>
           <Route path="/" element={<UserHome />} />
-          <Route path="/modules" element={<div>Available Modules - Coming Soon</div>} />
-          <Route path="/my-scores" element={<div>My Test Scores - Coming Soon</div>} />
+          <Route path="/modules" element={<ModulesPage />} />
+          <Route path="/modules/*" element={<ModulesPage />} />
+          <Route path="/modules/:moduleId" element={<ModuleViewPage />} />
+          <Route path="/test/:testId" element={<TestPage />} />
+          <Route path="/test-result/:attemptId" element={<TestResultPage />} />
+          <Route path="/my-scores" element={<MyScoresPage />} />
+          <Route path="/my-scores/*" element={<MyScoresPage />} />
         </Routes>
       </main>
     </div>
@@ -61,7 +70,7 @@ const UserHome = () => {
 
       <div className="modules-section">
         <h3>Available Modules</h3>
-        <p>No modules available yet. Check back soon!</p>
+        <p>Click on "Modules" in the navigation to get started!</p>
       </div>
     </div>
   );

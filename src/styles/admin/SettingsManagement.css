@@ -1,0 +1,275 @@
+.settings-management {
+  padding: 0;
+  background: transparent;
+  min-height: auto;
+}
+
+.settings-header {
+  margin-bottom: 0;
+}
+
+.settings-header h2 {
+  font-size: 22px;
+  color: #111827;
+  margin-bottom: 0;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  display: none;
+}
+
+.settings-header p {
+  color: #6b7280;
+  font-size: 13px;
+  margin: 0;
+  display: none;
+}
+
+/* Tabs */
+.settings-tabs {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 0;
+  border-bottom: none;
+  padding-bottom: 0;
+  flex-wrap: wrap;
+}
+
+.settings-tabs .tab-btn {
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  color: #6b7280;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+
+.settings-tabs .tab-btn:hover {
+  color: #374151;
+}
+
+.settings-tabs .tab-btn.active {
+  color: #6366f1;
+  border-bottom-color: #6366f1;
+}
+
+/* Tab Content */
+.tab-content {
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e5e7eb;
+}
+
+.tab-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.tab-header h3 {
+  font-size: 15px;
+  color: #111827;
+  margin: 0;
+  font-weight: 700;
+}
+
+/* Forms */
+.form-card {
+  background: #f7fafc;
+  padding: 2rem;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 2rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 0.5rem;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #cbd5e0;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  font-family: inherit;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+/* Tables */
+.items-table {
+  overflow-x: auto;
+}
+
+.items-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.items-table thead {
+  background: #f7fafc;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.items-table th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: #2d3748;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+}
+
+.items-table tbody tr {
+  border-bottom: 1px solid #e2e8f0;
+  transition: background 0.2s;
+}
+
+.items-table tbody tr:hover {
+  background: #f7fafc;
+}
+
+.items-table td {
+  padding: 1rem;
+  color: #4a5568;
+}
+
+.items-table td.empty {
+  text-align: center;
+  color: #718096;
+  font-style: italic;
+}
+
+.items-table td.action {
+  text-align: right;
+}
+
+.items-table td strong {
+  color: #1a202c;
+}
+
+.dept-name,
+.shift-name {
+  font-weight: 600;
+  color: #1a202c;
+}
+
+.description,
+.time-range {
+  color: #718096;
+}
+
+/* Buttons */
+.btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.95rem;
+}
+
+.btn-primary {
+  background: #6366f1;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #4f46e5;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.btn-success {
+  background: #10b981;
+  color: white;
+  width: 100%;
+}
+
+.btn-success:hover {
+  background: #059669;
+}
+
+.btn-danger {
+  padding: 0.5rem 1rem;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.btn-danger:hover {
+  background: #dc2626;
+}
+
+/* Info Text */
+.info-text {
+  color: #718096;
+  font-size: 0.95rem;
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #edf2f7;
+  border-radius: 4px;
+  border-left: 4px solid #6366f1;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .settings-management {
+    padding: 1rem;
+  }
+
+  .settings-tabs {
+    flex-wrap: wrap;
+  }
+
+  .tab-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .items-table {
+    font-size: 0.85rem;
+  }
+
+  .items-table th,
+  .items-table td {
+    padding: 0.75rem 0.5rem;
+  }
+
+  .btn-danger {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+  }
+}

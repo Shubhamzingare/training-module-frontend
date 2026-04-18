@@ -1,62 +1,49 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
-import ProtectedRoute from './components/common/ProtectedRoute';
-import useAuth from './hooks/useAuth';
-import { ROLES } from './utils/constants';
 
-// Pages
-import LoginPage from './pages/LoginPage';
-import AdminDashboard from './pages/admin/AdminDashboard';
-import UserDashboard from './pages/user/UserDashboard';
+// Public Pages
+import Home from './pages/Home';
+import Modules from './pages/Modules';
+import ModuleDetail from './pages/ModuleDetail';
+import TestGate from './pages/TestGate';
+import Test from './pages/Test';
+
+// Admin Pages
+import AdminLogin from './pages/admin/AdminLogin';
+import AdminDashboardV2 from './pages/admin/AdminDashboardV2';
+
+// Components
+import ProtectedAdminRoute from './components/common/ProtectedAdminRoute';
 
 // Styles
 import './App.css';
 
-function AppContent() {
-  const { isAuthenticated, loading, user } = useAuth();
-
-  if (loading) {
-    return <div className="loading">Loading...</div>;
-  }
-
+function App() {
   return (
     <Router>
       <Routes>
-        {/* Public Routes */}
-        <Route
-          path="/login"
-          element={isAuthenticated ? <Navigate to="/" replace /> : <LoginPage />}
-        />
+        {/* Public Routes - No Authentication Required */}
+        <Route path="/" element={<Home />} />
+        <Route path="/modules" element={<Modules />} />
+        <Route path="/modules/:id" element={<ModuleDetail />} />
+        <Route path="/test-gate" element={<TestGate />} />
+        <Route path="/test/:testSessionId" element={<Test />} />
 
-        {/* Protected Routes */}
+        {/* Admin Routes - Requires JWT Authentication */}
+        <Route path="/admin/login" element={<AdminLogin />} />
         <Route
           path="/admin/*"
           element={
-            <ProtectedRoute requiredRole={ROLES.ADMIN}>
-              <AdminDashboard />
-            </ProtectedRoute>
+            <ProtectedAdminRoute>
+              <AdminDashboardV2 />
+            </ProtectedAdminRoute>
           }
         />
 
-        <Route
-          path="/*"
-          element={
-            <ProtectedRoute>
-              <UserDashboard />
-            </ProtectedRoute>
-          }
-        />
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
-  );
-}
-
-function App() {
-  return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
   );
 }
 
