@@ -14,7 +14,7 @@ const ModuleDetail = () => {
     const fetchContent = async () => {
       try {
         // Fetch module details
-        const moduleResponse = await fetch(`http://localhost:5000/api/public/modules/${id}`);
+        const moduleResponse = await fetch(`${process.env.REACT_APP_API_URL || (process.env.REACT_APP_API_URL || 'http://localhost:5000')}$1`);
         const moduleResult = await moduleResponse.json();
         const module = moduleResult.data;
         setModuleData(module);
@@ -24,7 +24,7 @@ const ModuleDetail = () => {
           setActiveContent('module');
         } else {
           // If module not active, try to get associated test
-          const testResponse = await fetch(`http://localhost:5000/api/public/tests/${module?.testId || id}`);
+          const testResponse = await fetch(`${process.env.REACT_APP_API_URL || (process.env.REACT_APP_API_URL || 'http://localhost:5000')}$1`);
           const testResult = await testResponse.json();
           const test = testResult.data;
           setTestData(test);

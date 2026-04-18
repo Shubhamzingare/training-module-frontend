@@ -21,7 +21,8 @@ const AdminLogin = () => {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/admin/auth/login', {
+      const BASE = process.env.REACT_APP_API_URL || (process.env.REACT_APP_API_URL || 'http://localhost:5000');
+      const response = await fetch(`${BASE}/api/admin/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

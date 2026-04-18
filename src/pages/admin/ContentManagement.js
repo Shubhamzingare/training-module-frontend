@@ -68,7 +68,7 @@ const ContentManagement = () => {
 
     try {
       // Fetch categories
-      const catRes = await fetch('http://localhost:5000/api/admin/categories', {
+      const catRes = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/admin/categories`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       if (catRes.ok) {
@@ -77,7 +77,7 @@ const ContentManagement = () => {
       }
 
       // Fetch topics
-      const topRes = await fetch('http://localhost:5000/api/admin/topics', {
+      const topRes = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/admin/topics`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       if (topRes.ok) {
@@ -86,7 +86,7 @@ const ContentManagement = () => {
       }
 
       // Fetch modules
-      const modRes = await fetch('http://localhost:5000/api/admin/modules', {
+      const modRes = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/admin/modules`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       if (modRes.ok) {
@@ -122,7 +122,7 @@ const ContentManagement = () => {
 
     const token = localStorage.getItem('adminToken');
     try {
-      const response = await fetch(`http://localhost:5000/api/admin/modules/${moduleId}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || (process.env.REACT_APP_API_URL || 'http://localhost:5000')}$1`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` },
       });
@@ -144,7 +144,7 @@ const ContentManagement = () => {
 
     const token = localStorage.getItem('adminToken');
     try {
-      const response = await fetch(`http://localhost:5000/api/admin/topics/${topicId}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || (process.env.REACT_APP_API_URL || 'http://localhost:5000')}$1`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` },
       });
@@ -192,7 +192,7 @@ const ContentManagement = () => {
     const token = localStorage.getItem('adminToken');
 
     try {
-      const response = await fetch('http://localhost:5000/api/admin/categories', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/admin/categories`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -220,7 +220,7 @@ const ContentManagement = () => {
     const token = localStorage.getItem('adminToken');
 
     try {
-      const response = await fetch('http://localhost:5000/api/admin/topics', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/admin/topics`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -266,7 +266,7 @@ const ContentManagement = () => {
         formData.append('file', moduleForm.file);
       }
 
-      const response = await fetch('http://localhost:5000/api/admin/modules', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/admin/modules`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -306,7 +306,7 @@ const ContentManagement = () => {
 
     const token = localStorage.getItem('adminToken');
     try {
-      const response = await fetch(`http://localhost:5000/api/admin/categories/${id}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || (process.env.REACT_APP_API_URL || 'http://localhost:5000')}$1`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` },
       });

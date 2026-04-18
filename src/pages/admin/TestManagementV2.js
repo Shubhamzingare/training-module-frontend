@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import GoogleFormBuilder from '../../components/admin/GoogleFormBuilder';
 import '../../styles/admin/TestManagementV2.css';
 
-const API = `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/admin`;
+const API = `${process.env.REACT_APP_API_URL || (process.env.REACT_APP_API_URL || 'http://localhost:5000')}/api/admin`;
 
 const BLANK = {
   title: 'Untitled Test',

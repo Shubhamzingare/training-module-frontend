@@ -38,7 +38,7 @@ const SettingsManagement = () => {
 
     try {
       // Fetch departments
-      const deptRes = await fetch('http://localhost:5000/api/admin/departments', {
+      const deptRes = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/admin/departments`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       if (deptRes.ok) {
@@ -47,7 +47,7 @@ const SettingsManagement = () => {
       }
 
       // Fetch shifts
-      const shiftRes = await fetch('http://localhost:5000/api/admin/shifts', {
+      const shiftRes = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/admin/shifts`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       if (shiftRes.ok) {
@@ -67,7 +67,7 @@ const SettingsManagement = () => {
     const token = localStorage.getItem('adminToken');
 
     try {
-      const response = await fetch('http://localhost:5000/api/admin/departments', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/admin/departments`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -95,7 +95,7 @@ const SettingsManagement = () => {
 
     const token = localStorage.getItem('adminToken');
     try {
-      const response = await fetch(`http://localhost:5000/api/admin/departments/${id}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || (process.env.REACT_APP_API_URL || 'http://localhost:5000')}$1`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` },
       });
@@ -115,7 +115,7 @@ const SettingsManagement = () => {
     const token = localStorage.getItem('adminToken');
 
     try {
-      const response = await fetch('http://localhost:5000/api/admin/shifts', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/admin/shifts`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -143,7 +143,7 @@ const SettingsManagement = () => {
 
     const token = localStorage.getItem('adminToken');
     try {
-      const response = await fetch(`http://localhost:5000/api/admin/shifts/${id}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || (process.env.REACT_APP_API_URL || 'http://localhost:5000')}$1`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` },
       });
@@ -169,7 +169,7 @@ const SettingsManagement = () => {
     const token = localStorage.getItem('adminToken');
 
     try {
-      const response = await fetch('http://localhost:5000/api/admin/auth/create-admin', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/admin/auth/create-admin`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

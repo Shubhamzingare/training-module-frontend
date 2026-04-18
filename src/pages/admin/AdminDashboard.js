@@ -64,7 +64,7 @@ const AdminHome = () => {
     const fetchStats = async () => {
       try {
         const token = localStorage.getItem('adminToken');
-        const response = await fetch('http://localhost:5000/api/admin/performance/overview', {
+        const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/admin/performance/overview`, {
           headers: {
             'Authorization': `Bearer ${token}`,
           },

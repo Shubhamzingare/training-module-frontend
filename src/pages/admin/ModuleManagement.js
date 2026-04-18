@@ -82,7 +82,7 @@ const ModuleManagement = () => {
     const token = localStorage.getItem('adminToken');
 
     try {
-      const modRes = await fetch('http://localhost:5000/api/admin/modules', {
+      const modRes = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/admin/modules`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       if (modRes.ok) {
@@ -90,7 +90,7 @@ const ModuleManagement = () => {
         setModules(modData.data || []);
       }
 
-      const catRes = await fetch('http://localhost:5000/api/admin/categories', {
+      const catRes = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/admin/categories`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       if (catRes.ok) {
@@ -165,7 +165,7 @@ const ModuleManagement = () => {
     const token = localStorage.getItem('adminToken');
 
     try {
-      const response = await fetch('http://localhost:5000/api/admin/categories', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/admin/categories`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -245,7 +245,7 @@ const ModuleManagement = () => {
     formData.append('fileType', moduleForm.fileType);
 
     try {
-      const response = await fetch('http://localhost:5000/api/admin/modules', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/admin/modules`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
         body: formData,
@@ -317,7 +317,7 @@ const ModuleManagement = () => {
 
     const token = localStorage.getItem('adminToken');
     try {
-      const response = await fetch(`http://localhost:5000/api/admin/modules/${moduleId}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || (process.env.REACT_APP_API_URL || 'http://localhost:5000')}$1`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` },
       });

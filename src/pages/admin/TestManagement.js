@@ -51,7 +51,7 @@ const TestManagement = () => {
     const token = localStorage.getItem('adminToken');
 
     try {
-      const response = await fetch('http://localhost:5000/api/admin/tests', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/admin/tests`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       if (response.ok) {
@@ -69,7 +69,7 @@ const TestManagement = () => {
     const token = localStorage.getItem('adminToken');
 
     try {
-      const response = await fetch(`http://localhost:5000/api/admin/tests/${testId}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || (process.env.REACT_APP_API_URL || 'http://localhost:5000')}$1`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       if (response.ok) {
@@ -77,7 +77,7 @@ const TestManagement = () => {
         setSelectedTestDetail(data.data);
 
         // Fetch questions
-        const qRes = await fetch(`http://localhost:5000/api/admin/questions?testId=${testId}`, {
+        const qRes = await fetch(`${process.env.REACT_APP_API_URL || (process.env.REACT_APP_API_URL || 'http://localhost:5000')}$1`, {
           headers: { 'Authorization': `Bearer ${token}` },
         });
         if (qRes.ok) {
@@ -95,7 +95,7 @@ const TestManagement = () => {
     const token = localStorage.getItem('adminToken');
 
     try {
-      const response = await fetch('http://localhost:5000/api/admin/tests', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/admin/tests`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -139,7 +139,7 @@ const TestManagement = () => {
     const testId = selectedTestDetail._id;
 
     try {
-      const response = await fetch(`http://localhost:5000/api/admin/tests/${testId}/questions`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || (process.env.REACT_APP_API_URL || 'http://localhost:5000')}$1`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -176,7 +176,7 @@ const TestManagement = () => {
     const newStatus = currentStatus === 'draft' ? 'active' : 'draft';
 
     try {
-      const response = await fetch(`http://localhost:5000/api/admin/tests/${testId}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || (process.env.REACT_APP_API_URL || 'http://localhost:5000')}$1`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -206,7 +206,7 @@ const TestManagement = () => {
     const token = localStorage.getItem('adminToken');
 
     try {
-      const response = await fetch(`http://localhost:5000/api/admin/tests/${testId}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || (process.env.REACT_APP_API_URL || 'http://localhost:5000')}$1`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` },
       });
@@ -238,7 +238,7 @@ const TestManagement = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/admin/tests/${testId}/questions/${editingQuestionId}`,
+        `${process.env.REACT_APP_API_URL || (process.env.REACT_APP_API_URL || 'http://localhost:5000')}$1`,
         {
           method: 'PUT',
           headers: {
@@ -272,7 +272,7 @@ const TestManagement = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/admin/tests/${testId}/questions/${questionId}`,
+        `${process.env.REACT_APP_API_URL || (process.env.REACT_APP_API_URL || 'http://localhost:5000')}$1`,
         {
           method: 'DELETE',
           headers: { 'Authorization': `Bearer ${token}` },
@@ -313,7 +313,7 @@ const TestManagement = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/admin/tests/${testId}/reorder-questions`,
+        `${process.env.REACT_APP_API_URL || (process.env.REACT_APP_API_URL || 'http://localhost:5000')}$1`,
         {
           method: 'PUT',
           headers: {

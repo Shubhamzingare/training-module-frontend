@@ -15,7 +15,7 @@ const ReportCard = () => {
   const fetchDepartments = async () => {
     try {
       const token = localStorage.getItem('adminToken');
-      const response = await fetch('http://localhost:5000/api/public/departments', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/public/departments`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       if (response.ok) {
@@ -34,7 +34,7 @@ const ReportCard = () => {
     try {
       // Fetch all sessions
       const sessionsRes = await fetch(
-        `http://localhost:5000/api/admin/performance/all-sessions?dateFrom=${startDate}&dateTo=${endDate}`,
+        `${process.env.REACT_APP_API_URL || (process.env.REACT_APP_API_URL || 'http://localhost:5000')}$1`,
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
 
@@ -44,7 +44,7 @@ const ReportCard = () => {
       }
 
       // Fetch department stats
-      const deptRes = await fetch('http://localhost:5000/api/admin/performance/departments', {
+      const deptRes = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/admin/performance/departments`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
 

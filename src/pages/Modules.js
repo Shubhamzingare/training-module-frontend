@@ -14,7 +14,7 @@ const Modules = () => {
     // Fetch categories from API
     const fetchCategories = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/public/categories');
+        const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/public/categories`);
         const data = await response.json();
         if (data.success) {
           setCategories(data.data || []);
