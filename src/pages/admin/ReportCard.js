@@ -34,7 +34,7 @@ const ReportCard = () => {
     try {
       // Fetch all sessions
       const sessionsRes = await fetch(
-        `${process.env.REACT_APP_API_URL || (process.env.REACT_APP_API_URL || 'http://localhost:5000')}$1`,
+        `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/admin/performance/all-sessions?dateFrom=${startDate}&dateTo=${endDate}`,
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
 
@@ -57,7 +57,8 @@ const ReportCard = () => {
     }
 
     setLoading(false);
-  }, [startDate, endDate]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Set default date range (last 30 days)
   useEffect(() => {
