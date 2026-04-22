@@ -1,83 +1,109 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import '../styles/Home.css';
 
-const Home = () => {
+const BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+
+export default function Home() {
   const navigate = useNavigate();
-  const [categories, setCategories] = useState([]);
+  const [tests, setTests]   = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // TODO: Fetch categories from API
-    // For now, use mock data
-    const mockCategories = [
-      { id: '1', name: 'Wati Training', icon: '📚', type: 'wati_training', description: 'Training on internal tools and processes' },
-      { id: '2', name: 'New Deployment', icon: '🚀', type: 'new_deployment', description: 'Latest deployment and features' },
-    ];
-    setCategories(mockCategories);
-    setLoading(false);
+    fetch(`${BASE}/api/admin/tests`)
+      .then(r => r.json())
+      .then(d => setTests((d.data || []).filter(t => t.status === 'active')))
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
-  const handleTakeTest = () => {
-    navigate('/test-gate');
-  };
-
-  if (loading) {
-    return <div className="loading">Loading...</div>;
-  }
-
   return (
-    <div className="home-page">
+    <div className="home">
       <header className="home-header">
-        <h1>📚 Training & Assessment Platform</h1>
-        <p>Learn, test, and track your progress</p>
+        <div className="home-logo">
+          <div className="home-logo-icon">⬡</div>
+          <span>Habuild</span>
+        </div>
+        <a href="/admin/login" className="home-admin-link">Admin Login</a>
       </header>
 
-      <section className="hero-section">
-        <div className="hero-content">
-          <h2>Welcome to Your Training Dashboard</h2>
-          <p>Complete training modules and take tests to assess your knowledge</p>
-          <button className="btn btn-primary btn-large" onClick={handleTakeTest}>
-            Take a Test
+      <section className="home-hero">
+        <div className="home-hero-content">
+          <h1>Training & Assessment Platform</h1>
+          <p>Complete your assessments to track your progress</p>
+          <button className="home-cta-btn" onClick={() => navigate('/test-gate')}>
+            Take a Test →
           </button>
         </div>
       </section>
 
-      <section className="categories-section">
-        <h2>Training Categories</h2>
-        <div className="categories-grid">
-          {categories.map((category) => (
-            <Link key={category.id} to={`/modules?category=${category.type}`} className="category-card">
-              <div className="category-icon">{category.icon}</div>
-              <h3>{category.name}</h3>
-              <p>{category.description}</p>
-              <span className="cta">Explore →</span>
-            </Link>
-          ))}
+      <section className="home-section">
+        <div className="home-container">
+          <h2>Available Tests</h2>
+          {loading && (
+            <div className="home-shimmer-wrap">
+              {[1,2,3].map(i => <div key={i} className="home-shimmer" />)}
+            </div>
+          )}
+          {!loading && tests.length === 0 && (
+            <div className="home-empty">
+              <p>No active tests available right now.</p>
+              <p>Check back with your admin.</p>
+            </div>
+          )}
+          {!loading && tests.length > 0 && (
+            <div className="home-tests-grid">
+              {tests.map(test => (
+                <div key={test._id} className="home-test-card">
+                  <div className="home-test-card-top">
+                    <div className="home-test-icon">📋</div>
+                    <span className="home-test-badge">Active</span>
+                  </div>
+                  <h3>{test.title}</h3>
+                  <p>{test.description || 'Click below to start this assessment'}</p>
+                  <div className="home-test-meta">
+                    <span>⏱ {test.timeLimit} min</span>
+                    <span>📝 {test.totalMarks} marks</span>
+                    <span>Pass: {test.passingMarks}</span>
+                  </div>
+                  <button
+                    className="home-start-btn"
+                    onClick={() => navigate(`/test-gate?testId=${test._id}`)}
+                  >
+                    Start Test
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
-      <section className="quick-actions">
-        <h2>Quick Actions</h2>
-        <div className="actions-grid">
-          <Link to="/modules" className="action-card">
-            <span className="icon">📖</span>
-            <h3>Browse Modules</h3>
-            <p>View all available training content</p>
-          </Link>
-          <Link to="/test-gate" className="action-card">
-            <span className="icon">📝</span>
-            <h3>Take a Test</h3>
-            <p>Test your knowledge and get instant results</p>
-          </Link>
+      <section className="home-info-section">
+        <div className="home-container">
+          <div className="home-info-grid">
+            <div className="home-info-card">
+              <div className="home-info-icon">📚</div>
+              <h3>Training Modules</h3>
+              <p>Access content for Support Training and New Deployment</p>
+            </div>
+            <div className="home-info-card">
+              <div className="home-info-icon">⏱</div>
+              <h3>Timed Tests</h3>
+              <p>Complete tests within the allotted time</p>
+            </div>
+            <div className="home-info-card">
+              <div className="home-info-icon">📊</div>
+              <h3>Instant Results</h3>
+              <p>Get your score immediately after submission</p>
+            </div>
+          </div>
         </div>
       </section>
 
       <footer className="home-footer">
-        <p>&copy; 2026 Training & Assessment Platform. All rights reserved.</p>
+        <p>© 2026 Habuild · Training & Assessment Platform</p>
       </footer>
     </div>
   );
-};
-
-export default Home;
+}

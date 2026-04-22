@@ -7,6 +7,7 @@ import Modules from './pages/Modules';
 import ModuleDetail from './pages/ModuleDetail';
 import TestGate from './pages/TestGate';
 import Test from './pages/Test';
+import Result from './pages/Result';
 
 // Admin Pages
 import AdminLogin from './pages/admin/AdminLogin';
@@ -28,6 +29,7 @@ function App() {
         <Route path="/modules/:id" element={<ModuleDetail />} />
         <Route path="/test-gate" element={<TestGate />} />
         <Route path="/test/:testSessionId" element={<Test />} />
+        <Route path="/result" element={<Result />} />
 
         {/* Admin Routes - Requires JWT Authentication */}
         <Route path="/admin/login" element={<AdminLogin />} />
