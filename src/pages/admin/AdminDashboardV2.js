@@ -14,6 +14,7 @@ const AdminDashboardV2 = () => {
   const [activeSection, setActiveSection] = useState('dashboard');
   const [testMode, setTestMode] = useState('library');
   const [testsOpen, setTestsOpen] = useState(false);
+  const [testKey, setTestKey] = useState(0); // force remount to reload
   const navigate = useNavigate();
   const [user] = useState(JSON.parse(localStorage.getItem('adminUser') || '{}'));
 
@@ -35,11 +36,19 @@ const AdminDashboardV2 = () => {
   const handleMenuClick = (id) => {
     if (id === 'tests') {
       setTestsOpen(o => !o);
-      if (!testsOpen) { setActiveSection('tests'); setTestMode('library'); }
+      setActiveSection('tests');
+      setTestMode('library');
+      setTestKey(k => k + 1);
     } else if (id === 'test-lib') {
-      setTestMode('library'); setActiveSection('tests'); setTestsOpen(true);
+      setTestMode('library');
+      setActiveSection('tests');
+      setTestsOpen(true);
+      setTestKey(k => k + 1); // force reload
     } else if (id === 'test-create') {
-      setTestMode('create'); setActiveSection('tests'); setTestsOpen(true);
+      setTestMode('create');
+      setActiveSection('tests');
+      setTestsOpen(true);
+      setTestKey(k => k + 1);
     } else {
       setActiveSection(id);
     }
@@ -49,7 +58,7 @@ const AdminDashboardV2 = () => {
     switch (activeSection) {
       case 'dashboard':  return <AdminHome />;
       case 'training':   return <ModuleManagement />;
-      case 'tests':      return <TestManagementV2 mode={testMode} onModeChange={setTestMode} />;
+      case 'tests':      return <TestManagementV2 key={testKey} mode={testMode} onModeChange={(m) => { setTestMode(m); if (m === 'library') setTestKey(k => k + 1); }} />;
       case 'performance':return <PerformancePage />;
       case 'reports':    return <ReportCard />;
       case 'settings':   return <SettingsManagement />;
