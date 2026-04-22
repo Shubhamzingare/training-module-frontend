@@ -24,7 +24,7 @@ export default function TestGate() {
     Promise.all([
       fetch(`${BASE}/api/public/departments`).then(r => r.json()),
       fetch(`${BASE}/api/public/shifts`).then(r => r.json()),
-      fetch(`${BASE}/api/admin/tests`).then(r => r.json()),
+      fetch(`${BASE}/api/public/tests`).then(r => r.json()),
     ]).then(([depts, shifts, tests]) => {
       setDepartments(depts.data || []);
       setShifts(shifts.data || []);

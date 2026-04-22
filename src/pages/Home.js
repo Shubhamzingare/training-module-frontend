@@ -16,7 +16,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`${BASE}/api/admin/tests`)
+    fetch(`${BASE}/api/public/tests`)
       .then(r => r.json())
       .then(d => setTests((d.data || []).filter(t => t.status === 'active')))
       .catch(() => {})
