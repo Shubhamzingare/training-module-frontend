@@ -104,6 +104,33 @@ const ModuleManagement = () => {
     setLoading(false);
   };
 
+  // ===== STATUS TOGGLE =====
+
+  const [toggleMessage, setToggleMessage] = useState('');
+
+  const handleToggleStatus = async (e, moduleId, currentStatus) => {
+    e.stopPropagation();
+    const token = localStorage.getItem('adminToken');
+    try {
+      const res = await fetch(
+        `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/admin/modules/${moduleId}/toggle-status`,
+        { method: 'PATCH', headers: { 'Authorization': `Bearer ${token}` } }
+      );
+      if (res.ok) {
+        const data = await res.json();
+        const newStatus = data.data?.module?.status;
+        const msg = newStatus === 'active'
+          ? 'Module activated. Associated test has been locked if linked.'
+          : 'Module locked.';
+        setToggleMessage(msg);
+        setTimeout(() => setToggleMessage(''), 3500);
+        fetchData();
+      }
+    } catch (err) {
+      console.error('Toggle error:', err);
+    }
+  };
+
   // ===== MODULES TAB FUNCTIONS =====
 
   const getFilteredModulesList = () => {
@@ -317,7 +344,7 @@ const ModuleManagement = () => {
 
     const token = localStorage.getItem('adminToken');
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL || (process.env.REACT_APP_API_URL || 'http://localhost:5000')}$1`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/admin/modules/${moduleId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` },
       });
@@ -576,6 +603,13 @@ const ModuleManagement = () => {
             </button>
           </div>
 
+          {/* Toggle success message */}
+          {toggleMessage && (
+            <div className="success-msg" style={{ marginBottom: 16 }}>
+              {toggleMessage}
+            </div>
+          )}
+
           {/* Modules Table */}
           {filteredModules.length > 0 ? (
             <div className="modules-table-wrapper">
@@ -614,10 +648,12 @@ const ModuleManagement = () => {
                       </td>
                       <td>
                         <span className={`status-badge status-${module.status}`}>
-                          {module.status === 'draft' ? 'Draft' : 'Active'}
+                          {module.status === 'draft'  && 'Draft'}
+                          {module.status === 'active' && 'Active'}
+                          {module.status === 'locked' && 'Locked'}
                         </span>
                       </td>
-                      <td>
+                      <td style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                         <button
                           className="btn-view"
                           onClick={(e) => {
@@ -627,6 +663,21 @@ const ModuleManagement = () => {
                         >
                           View
                         </button>
+                        {module.status === 'active' ? (
+                          <button
+                            className="btn-lock"
+                            onClick={(e) => handleToggleStatus(e, module._id, module.status)}
+                          >
+                            Lock
+                          </button>
+                        ) : (
+                          <button
+                            className="btn-activate"
+                            onClick={(e) => handleToggleStatus(e, module._id, module.status)}
+                          >
+                            Activate
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -1034,7 +1085,9 @@ const ModuleManagement = () => {
                         </td>
                         <td>
                           <span className={`status-badge status-${content.status}`}>
-                            {content.status === 'draft' ? 'Draft' : 'Active'}
+                            {content.status === 'draft'  && 'Draft'}
+                            {content.status === 'active' && 'Active'}
+                            {content.status === 'locked' && 'Locked'}
                           </span>
                         </td>
                         <td>
