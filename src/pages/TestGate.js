@@ -64,7 +64,7 @@ export default function TestGate() {
       const data = await r.json();
       if (!r.ok) throw new Error(data.error?.message || 'Could not start test');
       sessionStorage.setItem('testUser', JSON.stringify({ name: form.name, phone: form.phone }));
-      navigate(`/test/${data.data._id}?testId=${form.testId}`);
+      navigate(`/test/${data.data.sessionId || data.data._id}?testId=${form.testId}`);
     } catch (err) {
       setError(err.message);
     } finally {
