@@ -329,3 +329,26 @@
   .td-panel { width: 100% !important; height: 200px; border-right: none; border-bottom: 1px solid #e2e8f0; }
   .td-panel-content { height: 400px; }
 }
+
+/* ── Panel collapse ── */
+.td-panel-hidden {
+  width: 0 !important;
+  min-width: 0 !important;
+  overflow: hidden;
+  border: none;
+  transition: width .2s ease;
+}
+
+/* ── Back button ── */
+.td-back-btn {
+  background: none;
+  border: none;
+  font-size: 16px;
+  font-weight: 700;
+  color: #718096;
+  cursor: pointer;
+  padding: 0 8px 0 0;
+  flex-shrink: 0;
+  transition: color .15s;
+}
+.td-back-btn:hover { color: #2c3e50; }

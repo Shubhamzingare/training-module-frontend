@@ -30,6 +30,9 @@ export default function Home() {
   // New Deployment filter
   const [filterDate,      setFilterDate]       = useState('');
 
+  // Panel 1 visibility — collapses after category selected
+  const [showCatPanel,    setShowCatPanel]     = useState(true);
+
   // Load tests once
   useEffect(() => {
     fetch(`${BASE}/api/public/tests`)
@@ -47,6 +50,7 @@ export default function Home() {
     setModules([]);
     setSelectedModule(null);
     setFilterDate('');
+    setShowCatPanel(true); // always show Panel 1 when switching nav
     setCatsLoading(true);
 
     const type = activeNav === 'support' ? 'wati_training' : 'new_deployment';
@@ -67,6 +71,7 @@ export default function Home() {
     setSelectedModule(null);
     setModules([]);
     setModsLoading(true);
+    setShowCatPanel(false); // collapse Panel 1 after selection
     fetch(`${BASE}/api/public/categories/${cat._id}/modules`)
       .then(r => r.json())
       .then(d => {
@@ -216,8 +221,8 @@ export default function Home() {
         {(activeNav === 'support' || activeNav === 'deployment') && (
           <div className="td-three-panel">
 
-            {/* ── PANEL 1: Category List (Modules in user's terms) ── */}
-            <div className="td-panel td-panel-cats">
+            {/* ── PANEL 1: Category List — hidden after selection ── */}
+            <div className={`td-panel td-panel-cats ${showCatPanel ? '' : 'td-panel-hidden'}`}>
               <div className="td-panel-head">
                 {activeNav === 'support' ? 'Support Training' : 'New Deployment'}
               </div>
@@ -252,7 +257,12 @@ export default function Home() {
               ) : (
                 <>
                   <div className="td-panel-head">
-                    {selectedCat.name}
+                    <button
+                      className="td-back-btn"
+                      onClick={() => { setShowCatPanel(true); setSelectedCat(null); setModules([]); setSelectedModule(null); }}
+                      title="Back to modules"
+                    >←</button>
+                    <span>{selectedCat.name}</span>
                     {activeNav === 'deployment' && modules.length > 0 && (
                       <div className="td-filter-bar-inline">
                         <button className={`td-filter-btn ${filterDate===''?'active':''}`} onClick={()=>setFilterDate('')}>All</button>
