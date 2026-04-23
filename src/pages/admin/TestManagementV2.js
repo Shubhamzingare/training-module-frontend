@@ -7,6 +7,7 @@ const BLANK_FORM = {
   title: '', description: '',
   totalMarks: 100, passingMarks: 50, timeLimit: 30,
   moduleType: '', categoryId: '',
+  googleFormUrl: '',
   shuffleQuestions: false, shuffleOptions: false,
   allowMultipleAttempts: false, maxAttempts: 1,
   responseVisibility: 'score_only',
@@ -103,6 +104,7 @@ export default function TestManagementV2({ mode = 'library', onModeChange }) {
         totalMarks: t.totalMarks || 100, passingMarks: t.passingMarks || 50,
         timeLimit: t.timeLimit || 30, moduleType: t.moduleType || '',
         categoryId: t.categoryId?._id || t.categoryId || '',
+        googleFormUrl: t.googleFormUrl || '',
         shuffleQuestions: t.shuffleQuestions || false,
         shuffleOptions: t.shuffleOptions || false,
         allowMultipleAttempts: t.allowMultipleAttempts || false,
@@ -247,6 +249,7 @@ export default function TestManagementV2({ mode = 'library', onModeChange }) {
         totalMarks: form.totalMarks, passingMarks: form.passingMarks,
         timeLimit: form.timeLimit, status: editTest?.status || 'draft',
         moduleType: form.moduleType, categoryId: form.categoryId || undefined,
+        googleFormUrl: form.googleFormUrl || null,
         shuffleQuestions: form.shuffleQuestions, shuffleOptions: form.shuffleOptions,
         allowMultipleAttempts: form.allowMultipleAttempts, maxAttempts: form.maxAttempts,
         responseVisibility: form.responseVisibility,
@@ -477,6 +480,19 @@ export default function TestManagementV2({ mode = 'library', onModeChange }) {
                           <option key={c._id} value={c._id}>{c.name}</option>
                         ))}
                       </select>
+                    </div>
+                    <div className="tm-meta-field" style={{gridColumn: '1 / -1'}}>
+                      <label>Google Form URL (optional)</label>
+                      <input
+                        type="url"
+                        name="googleFormUrl"
+                        value={form.googleFormUrl || ''}
+                        onChange={handleChange}
+                        placeholder="https://forms.gle/... or https://docs.google.com/forms/..."
+                      />
+                      <small style={{fontSize:11,color:'#718096',marginTop:4,display:'block'}}>
+                        Paste a Google Form link to use it instead of the question builder
+                      </small>
                     </div>
                   </div>
 

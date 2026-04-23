@@ -39,6 +39,8 @@ const ModuleManagement = () => {
     fileType: 'pdf',
     file: null,
     demoDate: '',
+    contentUrl: '',
+    contentType: '',
   });
 
   // Library tab state
@@ -249,10 +251,15 @@ const ModuleManagement = () => {
     return h > 0 ? `${h}h ${m}m` : `${m}m`;
   };
 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setModuleForm(prev => ({ ...prev, [name]: value }));
+  };
+
   const handleUpload = async (e) => {
     e.preventDefault();
-    if (!moduleForm.file) {
-      setUploadError('Select a file');
+    if (!moduleForm.file && !moduleForm.contentUrl) {
+      setUploadError('Select a file or enter an external content URL');
       return;
     }
     if (!moduleForm.categoryId) {
@@ -266,7 +273,7 @@ const ModuleManagement = () => {
 
     const token = localStorage.getItem('adminToken');
     const formData = new FormData();
-    formData.append('file', moduleForm.file);
+    if (moduleForm.file) formData.append('file', moduleForm.file);
     formData.append('title', moduleForm.title);
     formData.append('description', moduleForm.description);
     formData.append('categoryId', moduleForm.categoryId);
@@ -274,6 +281,8 @@ const ModuleManagement = () => {
     if (moduleForm.demoDate) {
       formData.append('demoDate', moduleForm.demoDate);
     }
+    if (moduleForm.contentUrl) formData.append('contentUrl', moduleForm.contentUrl);
+    if (moduleForm.contentType) formData.append('contentType', moduleForm.contentType);
 
     try {
       const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/admin/modules`, {
@@ -293,6 +302,8 @@ const ModuleManagement = () => {
           fileType: 'pdf',
           file: null,
           demoDate: '',
+          contentUrl: '',
+          contentType: '',
         });
         setUploadError('');
         fetchData();
@@ -642,10 +653,15 @@ const ModuleManagement = () => {
                       <td>{getCategoryName(module.categoryId)}</td>
                       <td>
                         <span className="content-type-badge">
-                          {module.fileType === 'pdf' && 'PDF'}
-                          {module.fileType === 'pptx' && 'PowerPoint'}
-                          {module.fileType === 'video' && 'Video'}
-                          {module.fileType === 'doc' && 'Document'}
+                          {module.contentType === 'canva' && 'Canva'}
+                          {module.contentType === 'drive' && 'Google Drive'}
+                          {module.contentType === 'youtube' && 'YouTube'}
+                          {module.contentType === 'link' && 'External Link'}
+                          {!module.contentType && module.fileType === 'pdf' && 'PDF'}
+                          {!module.contentType && module.fileType === 'pptx' && 'PowerPoint'}
+                          {!module.contentType && module.fileType === 'video' && 'Video'}
+                          {!module.contentType && module.fileType === 'doc' && 'Document'}
+                          {!module.contentType && !module.fileType && '—'}
                         </span>
                       </td>
                       <td className="date-col">
@@ -900,6 +916,29 @@ const ModuleManagement = () => {
                 </div>
               </div>
 
+              <div className="form-group">
+                <label>OR External Content URL</label>
+                <input
+                  type="url"
+                  name="contentUrl"
+                  value={moduleForm.contentUrl || ''}
+                  onChange={handleChange}
+                  className="form-control"
+                  placeholder="https://canva.link/... or Google Drive link or YouTube URL"
+                />
+                <small>Use this instead of uploading a file (Canva, Google Drive, YouTube, etc.)</small>
+              </div>
+              <div className="form-group">
+                <label>Content Type</label>
+                <select name="contentType" value={moduleForm.contentType || ''} onChange={handleChange} className="form-control">
+                  <option value="">Select type</option>
+                  <option value="canva">Canva Presentation</option>
+                  <option value="drive">Google Drive</option>
+                  <option value="youtube">YouTube Video</option>
+                  <option value="link">Other Link</option>
+                </select>
+              </div>
+
               {uploadError && <div className="error-msg">{uploadError}</div>}
 
               <button type="submit" className="btn btn-success">Upload Content</button>
@@ -1085,10 +1124,15 @@ const ModuleManagement = () => {
                         <td>{getCategoryName(content.categoryId)}</td>
                         <td>
                           <span className="content-type-badge">
-                            {content.fileType === 'pdf' && 'PDF'}
-                            {content.fileType === 'pptx' && 'PowerPoint'}
-                            {content.fileType === 'video' && 'Video'}
-                            {content.fileType === 'doc' && 'Document'}
+                            {content.contentType === 'canva' && 'Canva'}
+                            {content.contentType === 'drive' && 'Google Drive'}
+                            {content.contentType === 'youtube' && 'YouTube'}
+                            {content.contentType === 'link' && 'External Link'}
+                            {!content.contentType && content.fileType === 'pdf' && 'PDF'}
+                            {!content.contentType && content.fileType === 'pptx' && 'PowerPoint'}
+                            {!content.contentType && content.fileType === 'video' && 'Video'}
+                            {!content.contentType && content.fileType === 'doc' && 'Document'}
+                            {!content.contentType && !content.fileType && '—'}
                           </span>
                         </td>
                         <td className="date-col">
@@ -1097,7 +1141,11 @@ const ModuleManagement = () => {
                         <td>
                           {content.fileUrl ? (
                             <a href={content.fileUrl} target="_blank" rel="noopener noreferrer" className="file-link">
-                              View
+                              View File
+                            </a>
+                          ) : content.contentUrl ? (
+                            <a href={content.contentUrl} target="_blank" rel="noopener noreferrer" className="file-link">
+                              Open Link
                             </a>
                           ) : (
                             <span className="no-file">—</span>

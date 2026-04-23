@@ -314,10 +314,16 @@ export default function Home() {
 
 /* ── Module card for grid ── */
 function ModCard({ mod, onClick }) {
-  const fileIcon = FILE_ICONS[mod.fileType?.toLowerCase()] || '📄';
+  const contentIcon = mod.contentType === 'canva' ? '🎨'
+    : mod.contentType === 'drive' ? '📁'
+    : mod.contentType === 'youtube' ? '🎥'
+    : mod.contentType === 'link' ? '🔗'
+    : null;
+  const fileIcon = contentIcon || FILE_ICONS[mod.fileType?.toLowerCase()] || '📄';
   const kp  = mod.keyPoints?.length || 0;
   const faq = mod.faqs?.length || 0;
-  const total = kp + faq + (mod.fileUrl ? 1 : 0);
+  const hasContent = mod.fileUrl || mod.contentUrl;
+  const total = kp + faq + (hasContent ? 1 : 0);
   return (
     <button className="td-mod-card" onClick={onClick}>
       <div className="td-mod-card-icon">{fileIcon}</div>
@@ -328,6 +334,14 @@ function ModCard({ mod, onClick }) {
           {kp > 0 && <span>{kp} key points</span>}
           {faq > 0 && <span>{faq} FAQs</span>}
           {mod.fileUrl && <span>{mod.fileType?.toUpperCase()} file</span>}
+          {mod.contentUrl && !mod.fileUrl && (
+            <span>
+              {mod.contentType === 'canva' ? 'Canva'
+               : mod.contentType === 'drive' ? 'Google Drive'
+               : mod.contentType === 'youtube' ? 'Video'
+               : 'External Link'}
+            </span>
+          )}
           {total === 0 && <span className="td-no-content">No content yet</span>}
         </div>
       </div>
@@ -339,27 +353,64 @@ function ModCard({ mod, onClick }) {
 /* ── Content viewer ── */
 function ContentViewer({ module }) {
   const [openFaq, setOpenFaq] = useState(null);
-  const fileIcon = FILE_ICONS[module.fileType?.toLowerCase()] || '📎';
+  const contentIcon = module.contentType === 'canva' ? '🎨'
+    : module.contentType === 'drive' ? '📁'
+    : module.contentType === 'youtube' ? '🎥'
+    : module.contentType === 'link' ? '🔗'
+    : null;
+  const fileIcon = contentIcon || FILE_ICONS[module.fileType?.toLowerCase()] || '📎';
+  const badgeLabel = module.contentType === 'canva' ? 'Canva'
+    : module.contentType === 'drive' ? 'Drive'
+    : module.contentType === 'youtube' ? 'Video'
+    : module.contentType === 'link' ? 'Link'
+    : module.fileType?.toUpperCase() || 'Content';
   const kpCount  = module.keyPoints?.length || 0;
   const faqCount = module.faqs?.length || 0;
 
   return (
     <div className="td-viewer-page">
       <div className="td-viewer-hero">
-        <div className="td-viewer-badge">{fileIcon} {module.fileType?.toUpperCase()}</div>
+        <div className="td-viewer-badge">{fileIcon} {badgeLabel}</div>
         <h2>{module.title}</h2>
         {module.description && <p>{module.description}</p>}
         <div className="td-viewer-chips">
           <span className={`td-stat-chip ${kpCount>0?'active':''}`}>📌 {kpCount} Key Points</span>
           <span className={`td-stat-chip ${faqCount>0?'active':''}`}>❓ {faqCount} FAQs</span>
           {module.fileUrl && <span className="td-stat-chip active">{fileIcon} File Available</span>}
+          {module.contentUrl && !module.fileUrl && <span className="td-stat-chip active">{fileIcon} Content Available</span>}
         </div>
       </div>
 
       <div className="td-viewer-body">
-        {module.fileUrl && (
+        {/* External content URL (Canva, Google Drive, etc.) */}
+        {module.contentUrl && (
           <div className="td-section">
             <div className="td-section-head">Training Material</div>
+            <div className="td-file-row">
+              <div className="td-file-info">
+                <span className="td-file-icon">
+                  {module.contentType === 'canva' ? '🎨' :
+                   module.contentType === 'drive' ? '📁' :
+                   module.contentType === 'youtube' ? '🎥' : '🔗'}
+                </span>
+                <div>
+                  <div className="td-file-name">{module.title}</div>
+                  <div className="td-file-type">
+                    {module.contentType === 'canva' ? 'Canva Presentation' :
+                     module.contentType === 'drive' ? 'Google Drive' :
+                     module.contentType === 'youtube' ? 'Video' : 'External Link'}
+                  </div>
+                </div>
+              </div>
+              <a href={module.contentUrl} target="_blank" rel="noopener noreferrer" className="td-view-btn">
+                Open →
+              </a>
+            </div>
+          </div>
+        )}
+        {module.fileUrl && (
+          <div className="td-section">
+            <div className="td-section-head">{module.contentUrl ? 'Uploaded File' : 'Training Material'}</div>
             <div className="td-file-row">
               <div className="td-file-info">
                 <span className="td-file-icon">{fileIcon}</span>
