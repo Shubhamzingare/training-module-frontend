@@ -44,11 +44,21 @@ export default function TestManagementV2({ mode = 'library', onModeChange }) {
   const [listLoading, setListLoading] = useState(true);
   const [saving,      setSaving]      = useState(false);
   const [saveMsg,     setSaveMsg]     = useState('');
-  const [editTest,    setEditTest]    = useState(null);   // existing test being edited
+  const [editTest,    setEditTest]    = useState(null);
   const [form,        setForm]        = useState({ ...BLANK_FORM });
-  const [questions,   setQuestions]   = useState([]);     // local question list
+  const [questions,   setQuestions]   = useState([]);
   const [categories,  setCategories]  = useState([]);
+  const [expandedId,  setExpandedId]  = useState(null);   // expanded test row in library
   const prevMode = useRef(mode);
+
+  /* ── Auto-calculate total marks from question marks ── */
+  useEffect(() => {
+    const real = questions.filter(q => !q._isSection && q.questionText?.trim());
+    if (real.length > 0) {
+      const sum = real.reduce((acc, q) => acc + (parseInt(q.marks) || 1), 0);
+      setForm(prev => ({ ...prev, totalMarks: sum }));
+    }
+  }, [questions]);
 
   /* ── load tests list ── */
   const loadTests = useCallback(async () => {
@@ -356,13 +366,13 @@ export default function TestManagementV2({ mode = 'library', onModeChange }) {
           <table className="tm-table">
             <thead>
               <tr>
+                <th></th>
                 <th>Test Name</th>
                 <th>Module</th>
                 <th>Category</th>
                 <th>Marks</th>
                 <th>Questions</th>
                 <th>Status</th>
-                <th>Created By</th>
                 <th>Date</th>
                 <th>Actions</th>
               </tr>
@@ -370,29 +380,79 @@ export default function TestManagementV2({ mode = 'library', onModeChange }) {
             <tbody>
               {tests.map(t => {
                 const catName = t.categoryId?.name || (categories.find(c => c._id === t.categoryId)?.name) || '—';
+                const isExpanded = expandedId === t._id;
+                const qs = t.questions || [];
                 return (
-                  <tr key={t._id} className="tm-table-row" onClick={() => openExisting(t._id)}>
-                    <td className="tm-col-name">{t.title || 'Untitled'}</td>
-                    <td className="tm-col-muted">{MODULE_LABELS[t.moduleType] || '—'}</td>
-                    <td className="tm-col-muted">{catName}</td>
-                    <td className="tm-col-center">{t.totalMarks}</td>
-                    <td className="tm-col-center">{(t.questions||[]).length}</td>
-                    <td><span className={`tm-badge tm-badge-${t.status}`}>{t.status}</span></td>
-                    <td className="tm-col-muted">{t.createdBy?.name || '—'}</td>
-                    <td className="tm-col-muted">{t.createdAt ? new Date(t.createdAt).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) : '—'}</td>
-                    <td onClick={e => e.stopPropagation()}>
-                      <div className="tm-tbl-actions">
-                        <button className="tm-edit-btn" onClick={() => openExisting(t._id)}>Edit</button>
-                        <button
-                          className={`tm-edit-btn ${t.status==='active'?'tm-unpublish-btn':''}`}
-                          onClick={e => { e.stopPropagation(); toggleStatus(t._id, t.status); }}
-                        >
-                          {t.status === 'draft' ? 'Publish' : 'Unpublish'}
+                  <React.Fragment key={t._id}>
+                    <tr className="tm-table-row">
+                      {/* Expand toggle */}
+                      <td style={{width:32,textAlign:'center',padding:'0 4px'}} onClick={() => setExpandedId(isExpanded ? null : t._id)}>
+                        <button style={{background:'none',border:'none',cursor:'pointer',fontSize:12,color:'#718096',padding:4}}>
+                          {isExpanded ? '▼' : '▶'}
                         </button>
-                        <button className="tm-del-btn" onClick={e => deleteTest(t._id, e)}>Delete</button>
-                      </div>
-                    </td>
-                  </tr>
+                      </td>
+                      <td className="tm-col-name" onClick={() => openExisting(t._id)} style={{cursor:'pointer'}}>
+                        {t.googleFormUrl && <span title="Uses Google Form" style={{marginRight:6,fontSize:12}}>📋</span>}
+                        {t.title || 'Untitled'}
+                      </td>
+                      <td className="tm-col-muted">{MODULE_LABELS[t.moduleType] || '—'}</td>
+                      <td className="tm-col-muted">{catName}</td>
+                      <td className="tm-col-center">{t.totalMarks}</td>
+                      <td className="tm-col-center">
+                        {t.googleFormUrl
+                          ? <span style={{fontSize:11,color:'#3182ce',fontWeight:600}}>Google Form</span>
+                          : qs.length}
+                      </td>
+                      <td><span className={`tm-badge tm-badge-${t.status}`}>{t.status}</span></td>
+                      <td className="tm-col-muted">{t.createdAt ? new Date(t.createdAt).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) : '—'}</td>
+                      <td>
+                        <div className="tm-tbl-actions">
+                          <button className="tm-edit-btn" onClick={() => openExisting(t._id)}>Edit</button>
+                          <button
+                            className={`tm-edit-btn ${t.status==='active'?'tm-unpublish-btn':''}`}
+                            onClick={() => toggleStatus(t._id, t.status)}
+                          >{t.status === 'draft' ? 'Publish' : 'Unpublish'}</button>
+                          <button className="tm-del-btn" onClick={e => deleteTest(t._id, e)}>Delete</button>
+                        </div>
+                      </td>
+                    </tr>
+
+                    {/* Expanded question preview */}
+                    {isExpanded && (
+                      <tr>
+                        <td colSpan={9} style={{padding:0,background:'#f7fafc'}}>
+                          <div className="tm-q-preview-panel">
+                            {t.googleFormUrl ? (
+                              <div className="tm-q-preview-google">
+                                <span>📋</span>
+                                <span>This test uses a Google Form.</span>
+                                <a href={t.googleFormUrl} target="_blank" rel="noopener noreferrer" className="tm-q-preview-link">
+                                  Preview Form →
+                                </a>
+                              </div>
+                            ) : qs.length === 0 ? (
+                              <div className="tm-q-preview-empty">No questions added yet — click Edit to add questions.</div>
+                            ) : (
+                              qs.map((q, i) => (
+                                <div key={q._id||i} className="tm-q-preview-row">
+                                  <span className="tm-q-preview-num">Q{i+1}</span>
+                                  <span className="tm-q-preview-text">{q.questionText}</span>
+                                  <span className="tm-q-preview-type">{q.type}</span>
+                                  <span className="tm-q-preview-marks">{q.marks} pt{q.marks!==1?'s':''}</span>
+                                  {q.isRequired && <span className="tm-q-preview-req">*Required</span>}
+                                </div>
+                              ))
+                            )}
+                            <div style={{padding:'8px 16px',borderTop:'1px solid #e2e8f0',display:'flex',gap:8}}>
+                              <button className="tm-edit-btn" onClick={() => { setExpandedId(null); openExisting(t._id); }}>
+                                Edit Full Form →
+                              </button>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
                 );
               })}
             </tbody>
