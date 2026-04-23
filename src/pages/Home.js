@@ -10,28 +10,26 @@ export default function Home() {
   const navigate = useNavigate();
 
   // nav: 'tests' | 'support' | 'deployment'
-  const [activeNav,       setActiveNav]       = useState('tests');
-  const [trainingOpen,    setTrainingOpen]     = useState(false);
+  const [activeNav,      setActiveNav]     = useState('tests');
+  const [trainingOpen,   setTrainingOpen]  = useState(false);
+
+  // Drill-down level: 0=categories, 1=content list, 2=viewer
+  const [drillLevel,     setDrillLevel]    = useState(0);
 
   // Tests
-  const [tests,           setTests]           = useState([]);
-  const [testsLoading,    setTestsLoading]     = useState(true);
+  const [tests,          setTests]         = useState([]);
+  const [testsLoading,   setTestsLoading]  = useState(true);
 
-  // Panel 1 — Category list
-  const [categories,      setCategories]       = useState([]);
-  const [catsLoading,     setCatsLoading]      = useState(false);
-  const [selectedCat,     setSelectedCat]      = useState(null);
+  // Training data
+  const [categories,     setCategories]    = useState([]);
+  const [catsLoading,    setCatsLoading]   = useState(false);
+  const [selectedCat,    setSelectedCat]   = useState(null);
 
-  // Panel 2 — Module list under selected category
-  const [modules,         setModules]          = useState([]);
-  const [modsLoading,     setModsLoading]      = useState(false);
-  const [selectedModule,  setSelectedModule]   = useState(null);
+  const [modules,        setModules]       = useState([]);
+  const [modsLoading,    setModsLoading]   = useState(false);
+  const [selectedModule, setSelectedModule]= useState(null);
 
-  // New Deployment filter
-  const [filterDate,      setFilterDate]       = useState('');
-
-  // Panel 1 visibility — collapses after category selected
-  const [showCatPanel,    setShowCatPanel]     = useState(true);
+  const [filterDate,     setFilterDate]    = useState('');
 
   // Load tests once
   useEffect(() => {
@@ -42,7 +40,7 @@ export default function Home() {
       .finally(() => setTestsLoading(false));
   }, []);
 
-  // Load categories when training nav changes
+  // Load categories when training nav selected
   useEffect(() => {
     if (activeNav !== 'support' && activeNav !== 'deployment') return;
     setCategories([]);
@@ -50,37 +48,49 @@ export default function Home() {
     setModules([]);
     setSelectedModule(null);
     setFilterDate('');
-    setShowCatPanel(true); // always show Panel 1 when switching nav
+    setDrillLevel(0);
     setCatsLoading(true);
 
     const type = activeNav === 'support' ? 'wati_training' : 'new_deployment';
     fetch(`${BASE}/api/public/categories`)
       .then(r => r.json())
-      .then(d => {
-        const filtered = (d.data || []).filter(c => c.type === type);
-        setCategories(filtered);
-        if (filtered.length > 0) handleSelectCategory(filtered[0]);
-      })
+      .then(d => setCategories((d.data || []).filter(c => c.type === type)))
       .catch(() => {})
       .finally(() => setCatsLoading(false));
   }, [activeNav]); // eslint-disable-line
 
-  // Load modules when category selected
+  // Step 1→2: Select category → load its modules, show content list
   function handleSelectCategory(cat) {
     setSelectedCat(cat);
     setSelectedModule(null);
     setModules([]);
+    setFilterDate('');
     setModsLoading(true);
-    setShowCatPanel(false); // collapse Panel 1 after selection
+    setDrillLevel(1);
+
     fetch(`${BASE}/api/public/categories/${cat._id}/modules`)
       .then(r => r.json())
-      .then(d => {
-        const mods = d.data || [];
-        setModules(mods);
-        if (mods.length > 0) setSelectedModule(mods[0]);
-      })
+      .then(d => setModules(d.data || []))
       .catch(() => {})
       .finally(() => setModsLoading(false));
+  }
+
+  // Step 2→3: Select module → show viewer
+  function handleSelectModule(mod) {
+    setSelectedModule(mod);
+    setDrillLevel(2);
+  }
+
+  // Back handlers
+  function goBack() {
+    if (drillLevel === 2) {
+      setDrillLevel(1);
+      setSelectedModule(null);
+    } else if (drillLevel === 1) {
+      setDrillLevel(0);
+      setSelectedCat(null);
+      setModules([]);
+    }
   }
 
   // Group by demoDate for New Deployment
@@ -93,20 +103,23 @@ export default function Home() {
       if (!groups[key]) groups[key] = [];
       groups[key].push(m);
     });
-    return Object.entries(groups).sort(([a], [b]) => {
+    return Object.entries(groups).sort(([a],[b]) => {
       if (a === 'No Date Set') return 1;
       if (b === 'No Date Set') return -1;
       return new Date(b) - new Date(a);
     });
   }
 
-  const deploymentGroups = groupByDemoDate(modules);
-  const filteredGroups   = filterDate === 'latest' ? deploymentGroups.slice(0, 1) : deploymentGroups;
+  const deploymentGroups  = groupByDemoDate(modules);
+  const filteredGroups    = filterDate === 'latest' ? deploymentGroups.slice(0,1) : deploymentGroups;
+
+  // Breadcrumb label
+  const navLabel = activeNav === 'support' ? 'Support Training' : 'New Deployment';
 
   return (
     <div className="team-shell">
 
-      {/* ══ NAV SIDEBAR ══ */}
+      {/* ── NAV SIDEBAR ── */}
       <aside className="team-sidebar">
         <div className="team-sidebar-logo">
           <div className="team-sidebar-logo-icon">⬡</div>
@@ -115,38 +128,33 @@ export default function Home() {
             <div className="team-sidebar-logo-sub">Training Portal</div>
           </div>
         </div>
-
         <nav className="team-nav">
-          {/* Tests */}
           <button
-            className={`team-nav-item ${activeNav === 'tests' ? 'active' : ''}`}
+            className={`team-nav-item ${activeNav==='tests'?'active':''}`}
             onClick={() => { setActiveNav('tests'); setTrainingOpen(false); }}
           >
             <span className="team-nav-icon">✓</span>
             <span className="team-nav-label">Tests</span>
           </button>
-
-          {/* Training Modules parent */}
           <button
-            className={`team-nav-item ${(activeNav === 'support' || activeNav === 'deployment') ? 'active' : ''}`}
+            className={`team-nav-item ${(activeNav==='support'||activeNav==='deployment')?'active':''}`}
             onClick={() => setTrainingOpen(o => !o)}
           >
             <span className="team-nav-icon">▦</span>
             <span className="team-nav-label">Training Modules</span>
-            <span style={{marginLeft:'auto',fontSize:10,opacity:.6}}>{trainingOpen ? '▾' : '▸'}</span>
+            <span style={{marginLeft:'auto',fontSize:10,opacity:.6}}>{trainingOpen?'▾':'▸'}</span>
           </button>
-
           {trainingOpen && (
             <div className="team-sidebar-sub-menu">
               <button
-                className={`sub-menu-item ${activeNav === 'support' ? 'active' : ''}`}
+                className={`sub-menu-item ${activeNav==='support'?'active':''}`}
                 onClick={() => setActiveNav('support')}
               >
                 <span className="sub-icon">▦</span>
                 <span>Support Training</span>
               </button>
               <button
-                className={`sub-menu-item ${activeNav === 'deployment' ? 'active' : ''}`}
+                className={`sub-menu-item ${activeNav==='deployment'?'active':''}`}
                 onClick={() => setActiveNav('deployment')}
               >
                 <span className="sub-icon">◈</span>
@@ -155,7 +163,6 @@ export default function Home() {
             </div>
           )}
         </nav>
-
         <div className="team-nav" style={{marginTop:'auto',paddingTop:16,borderTop:'1px solid rgba(255,255,255,0.08)'}}>
           <a href="/admin/login" className="team-nav-item" style={{textDecoration:'none'}}>
             <span className="team-nav-icon">⚙</span>
@@ -164,15 +171,13 @@ export default function Home() {
         </div>
       </aside>
 
-      {/* ══ MAIN ══ */}
+      {/* ── MAIN ── */}
       <div className="team-main">
 
         {/* ── TESTS ── */}
         {activeNav === 'tests' && (
           <>
-            <div className="team-topbar">
-              <span className="team-topbar-title">Tests</span>
-            </div>
+            <div className="team-topbar"><span className="team-topbar-title">Tests</span></div>
             <div className="team-content">
               <div className="team-page-heading">
                 <h2>Available Tests</h2>
@@ -197,7 +202,7 @@ export default function Home() {
                           <span className="team-badge-active">Active</span>
                         </div>
                         <h3 className="team-test-card-title">{test.title}</h3>
-                        <p className="team-test-card-desc">{test.description || 'Click Start Test to begin.'}</p>
+                        <p className="team-test-card-desc">{test.description||'Click Start Test to begin.'}</p>
                         <div className="team-test-stats">
                           <div className="team-stat"><span className="team-stat-val">{test.timeLimit}</span><span className="team-stat-label">Minutes</span></div>
                           <div className="team-stat"><span className="team-stat-val">{test.totalMarks}</span><span className="team-stat-label">Marks</span></div>
@@ -205,9 +210,7 @@ export default function Home() {
                         </div>
                       </div>
                       <div className="team-test-card-footer">
-                        <button className="team-start-btn" onClick={() => navigate(`/test-gate?testId=${test._id}`)}>
-                          Start Test →
-                        </button>
+                        <button className="team-start-btn" onClick={()=>navigate(`/test-gate?testId=${test._id}`)}>Start Test →</button>
                       </div>
                     </div>
                   ))}
@@ -217,110 +220,91 @@ export default function Home() {
           </>
         )}
 
-        {/* ── TRAINING (3-PANEL LAYOUT) ── */}
-        {(activeNav === 'support' || activeNav === 'deployment') && (
-          <div className="td-three-panel">
+        {/* ── TRAINING DRILL-DOWN ── */}
+        {(activeNav==='support'||activeNav==='deployment') && (
+          <div className="td-drill-shell">
 
-            {/* ── PANEL 1: Category List — hidden after selection ── */}
-            <div className={`td-panel td-panel-cats ${showCatPanel ? '' : 'td-panel-hidden'}`}>
-              <div className="td-panel-head">
-                {activeNav === 'support' ? 'Support Training' : 'New Deployment'}
-              </div>
-
-              {catsLoading ? (
-                <div className="td-panel-shimmer">{[1,2,3,4].map(i=><div key={i} className="td-item-shimmer"/>)}</div>
-              ) : categories.length === 0 ? (
-                <div className="td-panel-empty">No modules available yet.</div>
-              ) : (
-                <div className="td-panel-list">
-                  {categories.map(cat => (
-                    <button
-                      key={cat._id}
-                      className={`td-cat-item ${selectedCat?._id === cat._id ? 'active' : ''}`}
-                      onClick={() => handleSelectCategory(cat)}
-                    >
-                      <span className="td-cat-icon">▦</span>
-                      <span className="td-cat-name">{cat.name}</span>
-                      {selectedCat?._id === cat._id && <span className="td-cat-arrow">›</span>}
-                    </button>
-                  ))}
-                </div>
+            {/* Topbar with breadcrumb */}
+            <div className="team-topbar">
+              {drillLevel > 0 && (
+                <button className="td-topbar-back" onClick={goBack}>←</button>
               )}
+              <span className="team-topbar-title">
+                {drillLevel === 0 && navLabel}
+                {drillLevel === 1 && <><span className="td-breadcrumb">{navLabel} /</span> {selectedCat?.name}</>}
+                {drillLevel === 2 && <><span className="td-breadcrumb">{selectedCat?.name} /</span> {selectedModule?.title}</>}
+              </span>
             </div>
 
-            {/* ── PANEL 2: Module List (Content items under category) ── */}
-            <div className="td-panel td-panel-mods">
-              {!selectedCat ? (
-                <div className="td-panel-empty-center">
-                  <p>Select a module from the left</p>
-                </div>
-              ) : (
-                <>
-                  <div className="td-panel-head">
-                    <button
-                      className="td-back-btn"
-                      onClick={() => { setShowCatPanel(true); setSelectedCat(null); setModules([]); setSelectedModule(null); }}
-                      title="Back to modules"
-                    >←</button>
-                    <span>{selectedCat.name}</span>
-                    {activeNav === 'deployment' && modules.length > 0 && (
-                      <div className="td-filter-bar-inline">
-                        <button className={`td-filter-btn ${filterDate===''?'active':''}`} onClick={()=>setFilterDate('')}>All</button>
-                        <button className={`td-filter-btn ${filterDate==='latest'?'active':''}`} onClick={()=>setFilterDate('latest')}>Latest</button>
-                      </div>
-                    )}
+            {/* ── LEVEL 0: Category Grid ── */}
+            {drillLevel === 0 && (
+              <div className="td-content-scroll">
+                {catsLoading ? (
+                  <div className="td-cat-grid">{[1,2,3,4,5,6].map(i=><div key={i} className="td-cat-shimmer"/>)}</div>
+                ) : categories.length === 0 ? (
+                  <div className="team-empty">
+                    <div className="team-empty-icon">📂</div>
+                    <h3>No modules available</h3>
+                    <p>Check back later or contact your admin.</p>
                   </div>
+                ) : (
+                  <div className="td-cat-grid">
+                    {categories.map(cat => (
+                      <button key={cat._id} className="td-cat-card" onClick={()=>handleSelectCategory(cat)}>
+                        <div className="td-cat-card-icon">▦</div>
+                        <div className="td-cat-card-name">{cat.name}</div>
+                        <div className="td-cat-card-arrow">View content →</div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
-                  {modsLoading ? (
-                    <div className="td-panel-shimmer">{[1,2,3].map(i=><div key={i} className="td-item-shimmer"/>)}</div>
-                  ) : modules.length === 0 ? (
-                    <div className="td-panel-empty">No content in this module yet.</div>
-                  ) : activeNav === 'deployment' ? (
-                    /* Grouped by date for New Deployment */
-                    <div className="td-panel-list">
-                      {filteredGroups.map(([date, mods]) => (
-                        <div key={date}>
-                          <div className="td-date-header">📅 {date}</div>
-                          {mods.map(mod => (
-                            <ModuleItem
-                              key={mod._id}
-                              mod={mod}
-                              selected={selectedModule?._id === mod._id}
-                              onClick={() => setSelectedModule(mod)}
-                            />
-                          ))}
-                        </div>
-                      ))}
+            {/* ── LEVEL 1: Content List ── */}
+            {drillLevel === 1 && (
+              <div className="td-content-scroll">
+                {/* Filter for New Deployment */}
+                {activeNav==='deployment' && modules.length>0 && (
+                  <div className="td-filter-bar">
+                    <button className={`td-filter-btn ${filterDate===''?'active':''}`} onClick={()=>setFilterDate('')}>All</button>
+                    <button className={`td-filter-btn ${filterDate==='latest'?'active':''}`} onClick={()=>setFilterDate('latest')}>Latest</button>
+                  </div>
+                )}
+
+                {modsLoading ? (
+                  <div className="td-mod-grid">{[1,2,3].map(i=><div key={i} className="td-mod-shimmer"/>)}</div>
+                ) : modules.length===0 ? (
+                  <div className="team-empty">
+                    <div className="team-empty-icon">📄</div>
+                    <h3>No content in {selectedCat?.name}</h3>
+                    <p>Admin hasn't added any active content here yet.</p>
+                  </div>
+                ) : activeNav==='deployment' ? (
+                  // Grouped by date
+                  filteredGroups.map(([date, mods]) => (
+                    <div key={date}>
+                      <div className="td-date-header">📅 {date}</div>
+                      <div className="td-mod-grid">
+                        {mods.map(mod => <ModCard key={mod._id} mod={mod} onClick={()=>handleSelectModule(mod)}/>)}
+                      </div>
                     </div>
-                  ) : (
-                    /* Flat list for Support Training */
-                    <div className="td-panel-list">
-                      {modules.map(mod => (
-                        <ModuleItem
-                          key={mod._id}
-                          mod={mod}
-                          selected={selectedModule?._id === mod._id}
-                          onClick={() => setSelectedModule(mod)}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
+                  ))
+                ) : (
+                  // Flat grid for Support Training
+                  <div className="td-mod-grid">
+                    {modules.map(mod => <ModCard key={mod._id} mod={mod} onClick={()=>handleSelectModule(mod)}/>)}
+                  </div>
+                )}
+              </div>
+            )}
 
-            {/* ── PANEL 3: Content Viewer ── */}
-            <div className="td-panel td-panel-content">
-              {!selectedModule ? (
-                <div className="td-panel-empty-center">
-                  <div style={{fontSize:40,marginBottom:12}}>👈</div>
-                  <p>Select content to view</p>
-                </div>
-              ) : (
-                <ContentViewer module={selectedModule} />
-              )}
-            </div>
-
+            {/* ── LEVEL 2: Content Viewer ── */}
+            {drillLevel === 2 && selectedModule && (
+              <div className="td-content-scroll">
+                <ContentViewer module={selectedModule}/>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -328,54 +312,52 @@ export default function Home() {
   );
 }
 
-/* ── Module item in list ── */
-function ModuleItem({ mod, selected, onClick }) {
+/* ── Module card for grid ── */
+function ModCard({ mod, onClick }) {
   const fileIcon = FILE_ICONS[mod.fileType?.toLowerCase()] || '📄';
   const kp  = mod.keyPoints?.length || 0;
   const faq = mod.faqs?.length || 0;
-  const hasFile = !!mod.fileUrl;
-  const total = kp + faq + (hasFile ? 1 : 0);
-
+  const total = kp + faq + (mod.fileUrl ? 1 : 0);
   return (
-    <button className={`td-mod-item ${selected ? 'active' : ''}`} onClick={onClick}>
-      <div className="td-mod-item-row">
-        <span className="td-mod-icon">{fileIcon}</span>
-        <span className="td-mod-name">{mod.title}</span>
+    <button className="td-mod-card" onClick={onClick}>
+      <div className="td-mod-card-icon">{fileIcon}</div>
+      <div className="td-mod-card-body">
+        <div className="td-mod-card-title">{mod.title}</div>
+        {mod.description && <div className="td-mod-card-desc">{mod.description}</div>}
+        <div className="td-mod-card-meta">
+          {kp > 0 && <span>{kp} key points</span>}
+          {faq > 0 && <span>{faq} FAQs</span>}
+          {mod.fileUrl && <span>{mod.fileType?.toUpperCase()} file</span>}
+          {total === 0 && <span className="td-no-content">No content yet</span>}
+        </div>
       </div>
-      <div className="td-mod-meta">
-        <span className={`td-content-badge ${total > 0 ? 'has-content' : ''}`}>
-          {total > 0 ? `${total} items` : 'No content'}
-        </span>
-      </div>
+      <div className="td-mod-card-arrow">→</div>
     </button>
   );
 }
 
-/* ── Content viewer panel ── */
+/* ── Content viewer ── */
 function ContentViewer({ module }) {
   const [openFaq, setOpenFaq] = useState(null);
   const fileIcon = FILE_ICONS[module.fileType?.toLowerCase()] || '📎';
   const kpCount  = module.keyPoints?.length || 0;
   const faqCount = module.faqs?.length || 0;
-  const hasFile  = !!module.fileUrl;
 
   return (
-    <div className="td-viewer-wrap">
-      {/* Header */}
-      <div className="td-viewer-head-bar">
-        <span className="td-viewer-badge">{fileIcon} {module.fileType?.toUpperCase() || 'MODULE'}</span>
-        <h2 className="td-viewer-title">{module.title}</h2>
-        {module.description && <p className="td-viewer-desc">{module.description}</p>}
+    <div className="td-viewer-page">
+      <div className="td-viewer-hero">
+        <div className="td-viewer-badge">{fileIcon} {module.fileType?.toUpperCase()}</div>
+        <h2>{module.title}</h2>
+        {module.description && <p>{module.description}</p>}
         <div className="td-viewer-chips">
           <span className={`td-stat-chip ${kpCount>0?'active':''}`}>📌 {kpCount} Key Points</span>
           <span className={`td-stat-chip ${faqCount>0?'active':''}`}>❓ {faqCount} FAQs</span>
-          {hasFile && <span className="td-stat-chip active">{fileIcon} File Available</span>}
+          {module.fileUrl && <span className="td-stat-chip active">{fileIcon} File Available</span>}
         </div>
       </div>
 
-      <div className="td-viewer-sections">
-        {/* File */}
-        {hasFile && (
+      <div className="td-viewer-body">
+        {module.fileUrl && (
           <div className="td-section">
             <div className="td-section-head">Training Material</div>
             <div className="td-file-row">
@@ -393,12 +375,11 @@ function ContentViewer({ module }) {
           </div>
         )}
 
-        {/* Key Points */}
         <div className="td-section">
           <div className="td-section-head">Key Points</div>
           {kpCount > 0 ? (
             <ul className="td-key-points">
-              {module.keyPoints.map((pt, i) => (
+              {module.keyPoints.map((pt,i) => (
                 <li key={i} className="td-key-point">
                   <span className="td-kp-num">{i+1}</span>
                   <span className="td-kp-text">{pt}</span>
@@ -408,12 +389,11 @@ function ContentViewer({ module }) {
           ) : <p className="td-empty-text">Key points will appear once content is generated.</p>}
         </div>
 
-        {/* FAQs */}
         <div className="td-section">
           <div className="td-section-head">FAQs</div>
           {faqCount > 0 ? (
             <div className="td-faqs">
-              {module.faqs.map((faq, i) => (
+              {module.faqs.map((faq,i) => (
                 <div key={i} className={`td-faq ${openFaq===i?'open':''}`} onClick={()=>setOpenFaq(openFaq===i?null:i)}>
                   <div className="td-faq-q">
                     <span>{faq.question}</span>
