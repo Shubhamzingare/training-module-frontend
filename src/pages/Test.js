@@ -156,9 +156,15 @@ const Test = () => {
 
   // Google Form test — show form directly, no splash screen
   if (test?.googleFormUrl && !loading) {
-    const embedUrl = test.googleFormUrl.includes('?')
-      ? test.googleFormUrl + '&embedded=true'
-      : test.googleFormUrl + '?embedded=true';
+    // Auto-fix common URL mistakes:
+    // /edit → /viewform, /closedform → /viewform
+    let cleanUrl = test.googleFormUrl
+      .replace(/\/edit(\?.*)?$/, '/viewform$1')
+      .replace(/\/closedform(\?.*)?$/, '/viewform$1');
+
+    const embedUrl = cleanUrl.includes('?')
+      ? cleanUrl + '&embedded=true'
+      : cleanUrl + '?embedded=true';
 
     return (
       <div className="test-interface">

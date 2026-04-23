@@ -572,7 +572,7 @@ export default function TestManagementV2({ mode = 'library', onModeChange }) {
                         <div className="gf-google-mode-sub">Team will see this form embedded. No questions needed.</div>
                       </div>
                       <div className="gf-google-mode-actions">
-                        <a href={form.googleFormUrl} target="_blank" rel="noopener noreferrer" className="gf-google-preview-btn">
+                        <a href={form.googleFormUrl.replace(/\/edit(\?.*)?$/, "/viewform$1")} target="_blank" rel="noopener noreferrer" className="gf-google-preview-btn">
                           Preview Form →
                         </a>
                         <button
