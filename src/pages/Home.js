@@ -240,16 +240,17 @@ export default function Home() {
           {activeSection === 'tests' && (
             <>
               <div className="team-page-heading">
-                <h2>Available Tests</h2>
-                <p>Click a test to begin</p>
+                <h2>Tests</h2>
+                <p>{tests.length > 0 ? `${tests.length} test${tests.length!==1?'s':''} available` : 'No tests active right now'}</p>
               </div>
               {testsLoading ? (
                 <div className="team-cards-grid">{[1,2,3].map(i=><div key={i} className="team-shimmer" style={{height:200}}/>)}</div>
               ) : tests.length === 0 ? (
-                <div className="team-empty">
-                  <div className="team-empty-icon">📋</div>
-                  <h3>No tests available</h3>
-                  <p>Admin hasn't activated any tests yet.</p>
+                <div className="td-no-tests">
+                  <div className="td-no-tests-icon">🔒</div>
+                  <h3>No Tests Available</h3>
+                  <p>Tests are currently locked or not yet scheduled.</p>
+                  <p>Check back later or contact your admin.</p>
                 </div>
               ) : (
                 <div className="team-cards-grid">
