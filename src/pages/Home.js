@@ -1,72 +1,77 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/TeamLayout.css';
+import '../styles/TrainingDashboard.css';
 
 const BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
-const NAV = [
-  { id: 'tests',    icon: '✓', label: 'Tests'             },
-  { id: 'training', icon: '▦', label: 'Training Material' },
-];
-
-const FILE_ICONS = {
-  pdf:   '📄',
-  pptx:  '📊',
-  video: '🎬',
-  doc:   '📝',
-};
+const FILE_ICONS = { pdf:'📄', ppt:'📊', pptx:'📊', doc:'📝', docx:'📝', video:'🎥', mp4:'🎥' };
 
 export default function Home() {
   const navigate = useNavigate();
-  const [active,  setActive]  = useState('tests');
-  const [tests,   setTests]   = useState([]);
-  const [loading, setLoading] = useState(true);
 
-  // Training tab state
-  const [trainingCategories, setTrainingCategories]   = useState({ support: [], deployment: [] });
-  const [selectedCategory,   setSelectedCategory]     = useState(null);
-  const [categoryModules,    setCategoryModules]       = useState([]);
-  const [loadingModules,     setLoadingModules]        = useState(false);
+  // Main nav: 'tests' | 'support' | 'deployment'
+  const [activeNav,      setActiveNav]      = useState('tests');
 
+  // Tests
+  const [tests,          setTests]          = useState([]);
+  const [testsLoading,   setTestsLoading]   = useState(true);
+
+  // Training — module list
+  const [modules,        setModules]        = useState([]);
+  const [modulesLoading, setModulesLoading] = useState(false);
+  const [selectedModule, setSelectedModule] = useState(null);
+
+  // Load tests on mount
   useEffect(() => {
     fetch(`${BASE}/api/public/tests`)
       .then(r => r.json())
-      .then(d => setTests((d.data || []).filter(t => t.status === 'active')))
+      .then(d => setTests(d.data || []))
       .catch(() => {})
-      .finally(() => setLoading(false));
+      .finally(() => setTestsLoading(false));
   }, []);
 
-  // Fetch categories when training tab is first opened
+  // Load modules when nav changes to support or deployment
   useEffect(() => {
-    if (active !== 'training') return;
-    if (trainingCategories.support.length > 0 || trainingCategories.deployment.length > 0) return;
+    if (activeNav !== 'support' && activeNav !== 'deployment') return;
+    setModules([]);
+    setSelectedModule(null);
+    setModulesLoading(true);
+
+    const type = activeNav === 'support' ? 'wati_training' : 'new_deployment';
+
+    // Get categories of this type, then get modules for each
     fetch(`${BASE}/api/public/categories`)
       .then(r => r.json())
-      .then(d => {
-        const all = d.data || [];
-        setTrainingCategories({
-          support:    all.filter(c => c.type === 'wati_training'),
-          deployment: all.filter(c => c.type === 'new_deployment'),
-        });
+      .then(async d => {
+        const cats = (d.data || []).filter(c => c.type === type);
+        // Fetch modules for all categories in parallel
+        const results = await Promise.all(
+          cats.map(cat =>
+            fetch(`${BASE}/api/public/categories/${cat._id}/modules`)
+              .then(r => r.json())
+              .then(md => (md.data || []).map(m => ({ ...m, categoryName: cat.name })))
+              .catch(() => [])
+          )
+        );
+        const allModules = results.flat();
+        setModules(allModules);
+        if (allModules.length > 0) setSelectedModule(allModules[0]);
       })
-      .catch(() => {});
-  }, [active]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const handleSelectCategory = (cat) => {
-    setSelectedCategory(cat);
-    setCategoryModules([]);
-    setLoadingModules(true);
-    fetch(`${BASE}/api/public/categories/${cat._id}/modules`)
-      .then(r => r.json())
-      .then(d => setCategoryModules(d.data || []))
       .catch(() => {})
-      .finally(() => setLoadingModules(false));
-  };
+      .finally(() => setModulesLoading(false));
+  }, [activeNav]);
+
+  const NAV_ITEMS = [
+    { id: 'tests',      icon: '✓', label: 'Tests'            },
+    { id: 'support',    icon: '▦', label: 'Support Training' },
+    { id: 'deployment', icon: '◈', label: 'New Deployment'   },
+  ];
 
   return (
     <div className="team-shell">
 
-      {/* ── Sidebar ── */}
+      {/* ── Left Nav Sidebar ── */}
       <aside className="team-sidebar">
         <div className="team-sidebar-logo">
           <div className="team-sidebar-logo-icon">⬡</div>
@@ -75,62 +80,53 @@ export default function Home() {
             <div className="team-sidebar-logo-sub">Training Portal</div>
           </div>
         </div>
-
         <nav className="team-nav">
-          {NAV.map(item => (
+          {NAV_ITEMS.map(item => (
             <button
               key={item.id}
-              className={`team-nav-item ${active === item.id ? 'active' : ''}`}
-              onClick={() => setActive(item.id)}
+              className={`team-nav-item ${activeNav === item.id ? 'active' : ''}`}
+              onClick={() => setActiveNav(item.id)}
             >
               <span className="team-nav-icon">{item.icon}</span>
               <span className="team-nav-label">{item.label}</span>
             </button>
           ))}
         </nav>
+        <div className="team-nav" style={{marginTop:'auto', paddingTop:16, borderTop:'1px solid rgba(255,255,255,0.08)'}}>
+          <a href="/admin/login" className="team-nav-item" style={{textDecoration:'none'}}>
+            <span className="team-nav-icon">⚙</span>
+            <span className="team-nav-label">Admin</span>
+          </a>
+        </div>
       </aside>
 
-      {/* ── Main ── */}
+      {/* ── Main Area ── */}
       <div className="team-main">
 
-        {/* Top bar */}
-        <div className="team-topbar">
-          <span className="team-topbar-title">
-            {NAV.find(n => n.id === active)?.label}
-          </span>
-          <div className="team-topbar-right">
-            <a href="/admin/login" style={{ fontSize: 12, color: '#718096', textDecoration: 'none' }}>
-              Admin →
-            </a>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="team-content">
-
-          {/* ── TESTS TAB ── */}
-          {active === 'tests' && (
-            <>
+        {/* ════ TESTS TAB ════ */}
+        {activeNav === 'tests' && (
+          <>
+            <div className="team-topbar">
+              <span className="team-topbar-title">Tests</span>
+            </div>
+            <div className="team-content">
               <div className="team-page-heading">
                 <h2>Available Tests</h2>
-                <p>Select a test to begin your assessment</p>
+                <p>Select a test below to begin your assessment</p>
               </div>
-
-              {loading && (
+              {testsLoading ? (
                 <div className="team-cards-grid">
                   {[1,2,3].map(i => <div key={i} className="team-shimmer" />)}
                 </div>
-              )}
-
-              {!loading && (
+              ) : tests.length === 0 ? (
+                <div className="team-empty">
+                  <div className="team-empty-icon">📋</div>
+                  <h3>No tests available</h3>
+                  <p>No active tests right now. Check back later.</p>
+                </div>
+              ) : (
                 <div className="team-cards-grid">
-                  {tests.length === 0 ? (
-                    <div className="team-empty">
-                      <div className="team-empty-icon">📋</div>
-                      <h3>No tests available</h3>
-                      <p>No active tests right now. Check back later.</p>
-                    </div>
-                  ) : tests.map(test => (
+                  {tests.map(test => (
                     <div key={test._id} className="team-test-card">
                       <div className="team-test-card-stripe" />
                       <div className="team-test-card-body">
@@ -139,29 +135,15 @@ export default function Home() {
                           <span className="team-badge-active">Active</span>
                         </div>
                         <h3 className="team-test-card-title">{test.title}</h3>
-                        <p className="team-test-card-desc">
-                          {test.description || 'Click Start Test to begin this assessment.'}
-                        </p>
+                        <p className="team-test-card-desc">{test.description || 'Click Start Test to begin.'}</p>
                         <div className="team-test-stats">
-                          <div className="team-stat">
-                            <span className="team-stat-val">{test.timeLimit}</span>
-                            <span className="team-stat-label">Minutes</span>
-                          </div>
-                          <div className="team-stat">
-                            <span className="team-stat-val">{test.totalMarks}</span>
-                            <span className="team-stat-label">Marks</span>
-                          </div>
-                          <div className="team-stat">
-                            <span className="team-stat-val">{test.passingMarks}</span>
-                            <span className="team-stat-label">Pass</span>
-                          </div>
+                          <div className="team-stat"><span className="team-stat-val">{test.timeLimit}</span><span className="team-stat-label">Minutes</span></div>
+                          <div className="team-stat"><span className="team-stat-val">{test.totalMarks}</span><span className="team-stat-label">Marks</span></div>
+                          <div className="team-stat"><span className="team-stat-val">{test.passingMarks}</span><span className="team-stat-label">Pass</span></div>
                         </div>
                       </div>
                       <div className="team-test-card-footer">
-                        <button
-                          className="team-start-btn"
-                          onClick={() => navigate(`/test-gate?testId=${test._id}`)}
-                        >
+                        <button className="team-start-btn" onClick={() => navigate(`/test-gate?testId=${test._id}`)}>
                           Start Test →
                         </button>
                       </div>
@@ -169,157 +151,181 @@ export default function Home() {
                   ))}
                 </div>
               )}
-            </>
-          )}
+            </div>
+          </>
+        )}
 
-          {/* ── TRAINING TAB ── */}
-          {active === 'training' && (
-            <>
-              <div className="team-page-heading">
-                <h2>Training Material</h2>
-                <p>Select a category to browse training modules</p>
+        {/* ════ TRAINING TABS (Support / New Deployment) ════ */}
+        {(activeNav === 'support' || activeNav === 'deployment') && (
+          <div className="td-layout">
+
+            {/* Module List Panel */}
+            <div className="td-list-panel">
+              <div className="td-list-header">
+                <h3>{activeNav === 'support' ? 'Support Training' : 'New Deployment'}</h3>
+                <span className="td-list-count">{modules.length} modules</span>
               </div>
 
-              {/* Category sections */}
-              {!selectedCategory && (
-                <>
-                  {/* Support Training */}
-                  <div style={{ marginBottom: 32 }}>
-                    <h3 style={{ fontSize: 15, fontWeight: 700, color: '#2c3e50', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span>📚</span> Support Training
-                    </h3>
-                    {trainingCategories.support.length === 0 ? (
-                      <div className="team-empty" style={{ padding: '28px 24px' }}>
-                        <p style={{ margin: 0 }}>No support training categories yet.</p>
-                      </div>
-                    ) : (
-                      <div className="team-cards-grid">
-                        {trainingCategories.support.map(cat => (
-                          <div key={cat._id} className="team-test-card" style={{ cursor: 'pointer' }} onClick={() => handleSelectCategory(cat)}>
-                            <div className="team-test-card-stripe" />
-                            <div className="team-test-card-body">
-                              <div className="team-test-card-head">
-                                <div className="team-test-icon">{cat.icon || '📚'}</div>
-                                <span className="team-badge-active">Training</span>
-                              </div>
-                              <h3 className="team-test-card-title">{cat.name}</h3>
-                              <p className="team-test-card-desc">{cat.description || 'Click to view modules in this category.'}</p>
-                            </div>
-                            <div className="team-test-card-footer">
-                              <button className="team-start-btn" onClick={e => { e.stopPropagation(); handleSelectCategory(cat); }}>
-                                View Modules →
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* New Deployment */}
-                  <div>
-                    <h3 style={{ fontSize: 15, fontWeight: 700, color: '#2c3e50', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span>🚀</span> New Deployment
-                    </h3>
-                    {trainingCategories.deployment.length === 0 ? (
-                      <div className="team-empty" style={{ padding: '28px 24px' }}>
-                        <p style={{ margin: 0 }}>No new deployment categories yet.</p>
-                      </div>
-                    ) : (
-                      <div className="team-cards-grid">
-                        {trainingCategories.deployment.map(cat => (
-                          <div key={cat._id} className="team-test-card" style={{ cursor: 'pointer' }} onClick={() => handleSelectCategory(cat)}>
-                            <div className="team-test-card-stripe" style={{ background: 'linear-gradient(90deg,#1a6b4a 0%,#27ae60 100%)' }} />
-                            <div className="team-test-card-body">
-                              <div className="team-test-card-head">
-                                <div className="team-test-icon">{cat.icon || '🚀'}</div>
-                                <span className="team-badge-active">Deployment</span>
-                              </div>
-                              <h3 className="team-test-card-title">{cat.name}</h3>
-                              <p className="team-test-card-desc">{cat.description || 'Click to view modules in this category.'}</p>
-                            </div>
-                            <div className="team-test-card-footer">
-                              <button className="team-start-btn" onClick={e => { e.stopPropagation(); handleSelectCategory(cat); }}>
-                                View Modules →
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </>
-              )}
-
-              {/* Modules list for selected category */}
-              {selectedCategory && (
-                <>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
-                    <button
-                      onClick={() => { setSelectedCategory(null); setCategoryModules([]); }}
-                      style={{ background: 'none', border: 'none', color: '#2c3e50', fontWeight: 600, fontSize: 14, cursor: 'pointer', padding: '6px 0' }}
-                    >
-                      ← Back
-                    </button>
-                    <span style={{ color: '#718096', fontSize: 14 }}>/</span>
-                    <span style={{ fontSize: 14, fontWeight: 700, color: '#2c3e50' }}>{selectedCategory.name}</span>
-                  </div>
-
-                  {loadingModules && (
-                    <div className="team-cards-grid">
-                      {[1,2,3].map(i => <div key={i} className="team-shimmer" />)}
-                    </div>
-                  )}
-
-                  {!loadingModules && (
-                    <div className="team-cards-grid">
-                      {categoryModules.length === 0 ? (
-                        <div className="team-empty">
-                          <div className="team-empty-icon">📂</div>
-                          <h3>No modules available</h3>
-                          <p>No active modules in this category yet.</p>
+              {modulesLoading ? (
+                <div className="td-list-shimmer">
+                  {[1,2,3,4].map(i => <div key={i} className="td-module-shimmer" />)}
+                </div>
+              ) : modules.length === 0 ? (
+                <div className="td-list-empty">
+                  <p>No active modules yet.</p>
+                  <p>Ask your admin to upload and activate content.</p>
+                </div>
+              ) : (
+                <div className="td-module-list">
+                  {modules.map(mod => {
+                    const kpCount = mod.keyPoints?.length || 0;
+                    const faqCount = mod.faqs?.length || 0;
+                    const hasFile = !!mod.fileUrl;
+                    const total = kpCount + faqCount + (hasFile ? 1 : 0);
+                    return (
+                      <button
+                        key={mod._id}
+                        className={`td-module-item ${selectedModule?._id === mod._id ? 'active' : ''}`}
+                        onClick={() => setSelectedModule(mod)}
+                      >
+                        <div className="td-module-item-top">
+                          <span className="td-module-icon">
+                            {FILE_ICONS[mod.fileType?.toLowerCase()] || '📄'}
+                          </span>
+                          <span className="td-module-title">{mod.title}</span>
                         </div>
-                      ) : categoryModules.map(mod => (
-                        <div key={mod._id} className="team-test-card">
-                          <div className="team-test-card-stripe" />
-                          <div className="team-test-card-body">
-                            <div className="team-test-card-head">
-                              <div className="team-test-icon">{FILE_ICONS[mod.fileType] || '📄'}</div>
-                              <span style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', color: '#4a6278', letterSpacing: '.4px' }}>
-                                {mod.fileType?.toUpperCase() || 'PDF'}
-                              </span>
-                            </div>
-                            <h3 className="team-test-card-title">{mod.title}</h3>
-                            <p className="team-test-card-desc">{mod.description || 'Click View to open this training module.'}</p>
-                            <div className="team-test-stats">
-                              <div className="team-stat">
-                                <span className="team-stat-val">{mod.keyPoints?.length ?? 0}</span>
-                                <span className="team-stat-label">Key Points</span>
-                              </div>
-                              <div className="team-stat">
-                                <span className="team-stat-val">{mod.faqs?.length ?? 0}</span>
-                                <span className="team-stat-label">FAQs</span>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="team-test-card-footer">
-                            <button
-                              className="team-start-btn"
-                              onClick={() => navigate(`/modules/${mod._id}`)}
-                            >
-                              View →
-                            </button>
-                          </div>
+                        <div className="td-module-item-meta">
+                          <span className="td-module-cat">{mod.categoryName}</span>
+                          <span className={`td-content-badge ${total > 0 ? 'has-content' : ''}`}>
+                            {total} items
+                          </span>
                         </div>
-                      ))}
-                    </div>
-                  )}
-                </>
+                      </button>
+                    );
+                  })}
+                </div>
               )}
-            </>
-          )}
+            </div>
 
+            {/* Content Area */}
+            <div className="td-content-panel">
+              {!selectedModule ? (
+                <div className="td-select-prompt">
+                  <div className="td-prompt-icon">👈</div>
+                  <h3>Select a module</h3>
+                  <p>Choose a module from the list to view its content</p>
+                </div>
+              ) : (
+                <ModuleViewer module={selectedModule} />
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ── Module Content Viewer ── */
+function ModuleViewer({ module }) {
+  const [openFaq, setOpenFaq] = useState(null);
+
+  const kpCount  = module.keyPoints?.length || 0;
+  const faqCount = module.faqs?.length || 0;
+  const hasFile  = !!module.fileUrl;
+  const fileIcon = FILE_ICONS[module.fileType?.toLowerCase()] || '📎';
+
+  return (
+    <div className="td-viewer">
+      {/* Header */}
+      <div className="td-viewer-header">
+        <div className="td-viewer-badge">
+          {fileIcon} {module.fileType?.toUpperCase() || 'MODULE'}
         </div>
+        <h2 className="td-viewer-title">{module.title}</h2>
+        {module.description && (
+          <p className="td-viewer-desc">{module.description}</p>
+        )}
+        <div className="td-viewer-stats">
+          <div className={`td-stat-chip ${kpCount > 0 ? 'active' : ''}`}>
+            📌 {kpCount} Key Points
+          </div>
+          <div className={`td-stat-chip ${faqCount > 0 ? 'active' : ''}`}>
+            ❓ {faqCount} FAQs
+          </div>
+          {hasFile && (
+            <div className="td-stat-chip active">
+              {fileIcon} 1 File
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* File Download */}
+      {hasFile && (
+        <div className="td-section">
+          <div className="td-section-head">Training Material</div>
+          <div className="td-file-row">
+            <div className="td-file-info">
+              <span className="td-file-icon">{fileIcon}</span>
+              <div>
+                <div className="td-file-name">{module.title}</div>
+                <div className="td-file-type">{module.fileType?.toUpperCase()} File</div>
+              </div>
+            </div>
+            <a
+              href={module.fileUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="td-view-btn"
+            >
+              View / Download
+            </a>
+          </div>
+        </div>
+      )}
+
+      {/* Key Points */}
+      <div className="td-section">
+        <div className="td-section-head">Key Points</div>
+        {kpCount > 0 ? (
+          <ul className="td-key-points">
+            {module.keyPoints.map((pt, i) => (
+              <li key={i} className="td-key-point">
+                <span className="td-kp-num">{i + 1}</span>
+                <span className="td-kp-text">{pt}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="td-empty-text">Key points will appear here once content is generated.</p>
+        )}
+      </div>
+
+      {/* FAQs */}
+      <div className="td-section">
+        <div className="td-section-head">FAQs</div>
+        {faqCount > 0 ? (
+          <div className="td-faqs">
+            {module.faqs.map((faq, i) => (
+              <div
+                key={i}
+                className={`td-faq ${openFaq === i ? 'open' : ''}`}
+                onClick={() => setOpenFaq(openFaq === i ? null : i)}
+              >
+                <div className="td-faq-q">
+                  <span>{faq.question}</span>
+                  <span className="td-faq-arrow">{openFaq === i ? '▲' : '▼'}</span>
+                </div>
+                {openFaq === i && (
+                  <div className="td-faq-a">{faq.answer}</div>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="td-empty-text">FAQs will appear here once content is generated.</p>
+        )}
       </div>
     </div>
   );
