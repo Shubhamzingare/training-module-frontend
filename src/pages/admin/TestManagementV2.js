@@ -207,8 +207,15 @@ export default function TestManagementV2({ mode = 'library', onModeChange }) {
   ══════════════════════════════════════ */
   async function handleSaveTest() {
     if (!form.title.trim()) { alert('Please enter a test title'); return; }
-    const realQuestions = questions.filter(q => !q._isSection);
-    if (realQuestions.some(q => !q.questionText.trim())) {
+    const realQuestions = questions.filter(q => !q._isSection && q.questionText?.trim());
+
+    // If Google Form URL is provided, questions are optional
+    if (!form.googleFormUrl && realQuestions.length === 0) {
+      alert('Please add at least one question or enter a Google Form URL');
+      return;
+    }
+    // If using our builder, validate question texts
+    if (!form.googleFormUrl && questions.filter(q => !q._isSection).some(q => !q.questionText?.trim())) {
       alert('Please fill in all question texts before saving');
       return;
     }
@@ -406,7 +413,6 @@ export default function TestManagementV2({ mode = 'library', onModeChange }) {
         <button className="tm-bar-back" onClick={goLibrary}>← Test Library</button>
         <div className="tm-bar-tabs">
           <button className={`tm-tab ${tab==='questions'?'active':''}`} onClick={() => setTab('questions')}>Questions</button>
-          <button className={`tm-tab ${tab==='responses'?'active':''}`} onClick={() => { setTab('responses'); loadResponses(); }}>Responses {editTest && <span className="tm-tab-count">{responses.length||''}</span>}</button>
           <button className={`tm-tab ${tab==='settings'?'active':''}`} onClick={() => setTab('settings')}>Settings</button>
         </div>
         <div className="tm-bar-end">
@@ -495,6 +501,18 @@ export default function TestManagementV2({ mode = 'library', onModeChange }) {
                     </div>
                   </div>
                 </div>
+
+                {/* Google Form URL indicator */}
+                {form.googleFormUrl && (
+                  <div style={{background:'#d1fae5',border:'1px solid #6ee7b7',borderRadius:8,padding:'14px 20px',display:'flex',alignItems:'center',gap:12,margin:'0 0 4px'}}>
+                    <span style={{fontSize:20}}>📋</span>
+                    <div>
+                      <div style={{fontSize:13,fontWeight:700,color:'#065f46'}}>Using Google Form</div>
+                      <div style={{fontSize:12,color:'#047857',marginTop:2}}>Team will see the embedded Google Form. Questions below are optional.</div>
+                    </div>
+                    <a href={form.googleFormUrl} target="_blank" rel="noopener noreferrer" style={{marginLeft:'auto',fontSize:12,color:'#065f46',fontWeight:600}}>Preview →</a>
+                  </div>
+                )}
 
                 {/* Question cards */}
                 <div className="gf-questions-wrap">

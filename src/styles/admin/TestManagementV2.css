@@ -644,7 +644,7 @@
 
 /* Builder body override when in GF mode */
 .tm-builder-body--gf {
-  background: #f0ebf8;
+  background: #f4f6f8;
   padding: 32px 24px 80px;
 }
 
@@ -699,8 +699,8 @@
   position: relative;
 }
 .gf-rt-btn:hover {
-  background: #f0ebf8;
-  color: #673ab7;
+  background: #f4f6f8;
+  color: #2c3e50;
 }
 .gf-rt-btn[title]:hover::after {
   content: attr(title);
@@ -730,7 +730,7 @@
   background: white;
   border-radius: 8px;
   border: 1px solid #dadce0;
-  border-top: 10px solid #673ab7;
+  border-top: 10px solid #2c3e50;
   box-shadow: 0 2px 4px rgba(0,0,0,0.10), 0 4px 8px rgba(0,0,0,0.05);
   overflow: hidden;
 }
@@ -753,7 +753,7 @@
   transition: border-color 0.2s;
   line-height: 1.2;
 }
-.gf-title-inp:focus { border-bottom-color: #673ab7; }
+.gf-title-inp:focus { border-bottom-color: #2c3e50; }
 .gf-title-inp::placeholder { color: #bdbdbd; font-weight: 400; }
 
 .gf-desc-inp {
@@ -812,7 +812,7 @@
 }
 .gf-meta-field select:focus,
 .gf-meta-field input[type="url"]:focus {
-  border-color: #673ab7;
+  border-color: #2c3e50;
   box-shadow: 0 0 0 2px rgba(103,58,183,0.12);
 }
 .gf-meta-field select:disabled {
@@ -855,7 +855,7 @@
   background: white;
   border: 2px dashed #c5b3e6;
   border-radius: 8px;
-  color: #673ab7;
+  color: #2c3e50;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
@@ -864,8 +864,8 @@
   margin-top: 4px;
 }
 .gf-add-q-bottom:hover {
-  background: #f0ebf8;
-  border-color: #673ab7;
+  background: #f4f6f8;
+  border-color: #2c3e50;
 }
 
 /* ── Bottom save row ── */
@@ -879,7 +879,7 @@
 
 .gf-save-btn {
   padding: 11px 28px;
-  background: #673ab7;
+  background: #2c3e50;
   color: white;
   border: none;
   border-radius: 4px;
@@ -890,7 +890,7 @@
   transition: background 0.15s;
   letter-spacing: 0.02em;
 }
-.gf-save-btn:hover { background: #5e35b1; }
+.gf-save-btn:hover { background: #1a252f; }
 .gf-save-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
 /* ── Section cards ── */
@@ -898,7 +898,7 @@
   background: white;
   border-radius: 8px;
   border: 1px solid #dadce0;
-  border-top: 10px solid #673ab7;
+  border-top: 10px solid #2c3e50;
   box-shadow: 0 2px 4px rgba(0,0,0,0.10), 0 4px 8px rgba(0,0,0,0.05);
   padding: 20px 24px;
   position: relative;
@@ -907,7 +907,7 @@
 .gf-section-label {
   font-size: 11px;
   font-weight: 700;
-  color: #673ab7;
+  color: #2c3e50;
   text-transform: uppercase;
   letter-spacing: 0.6px;
   margin-bottom: 10px;
@@ -926,7 +926,7 @@
   font-family: inherit;
   transition: border-color 0.2s;
 }
-.gf-section-title-inp:focus { border-bottom-color: #673ab7; }
+.gf-section-title-inp:focus { border-bottom-color: #2c3e50; }
 .gf-section-title-inp::placeholder { color: #bdbdbd; }
 
 .gf-section-desc-inp {
