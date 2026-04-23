@@ -12,6 +12,7 @@ export default function Home() {
 
   // Main nav: 'tests' | 'support' | 'deployment'
   const [activeNav,      setActiveNav]      = useState('tests');
+  const [trainingOpen,   setTrainingOpen]   = useState(false);
 
   // Tests
   const [tests,          setTests]          = useState([]);
@@ -62,12 +63,6 @@ export default function Home() {
       .finally(() => setModulesLoading(false));
   }, [activeNav]);
 
-  const NAV_ITEMS = [
-    { id: 'tests',      icon: '✓', label: 'Tests'            },
-    { id: 'support',    icon: '▦', label: 'Support Training' },
-    { id: 'deployment', icon: '◈', label: 'New Deployment'   },
-  ];
-
   return (
     <div className="team-shell">
 
@@ -81,16 +76,44 @@ export default function Home() {
           </div>
         </div>
         <nav className="team-nav">
-          {NAV_ITEMS.map(item => (
-            <button
-              key={item.id}
-              className={`team-nav-item ${activeNav === item.id ? 'active' : ''}`}
-              onClick={() => setActiveNav(item.id)}
-            >
-              <span className="team-nav-icon">{item.icon}</span>
-              <span className="team-nav-label">{item.label}</span>
-            </button>
-          ))}
+          {/* Tests */}
+          <button
+            className={`team-nav-item ${activeNav === 'tests' ? 'active' : ''}`}
+            onClick={() => setActiveNav('tests')}
+          >
+            <span className="team-nav-icon">✓</span>
+            <span className="team-nav-label">Tests</span>
+          </button>
+
+          {/* Training Modules — collapsible parent */}
+          <button
+            className={`team-nav-item ${(activeNav === 'support' || activeNav === 'deployment') ? 'active' : ''}`}
+            onClick={() => setTrainingOpen(o => !o)}
+          >
+            <span className="team-nav-icon">▦</span>
+            <span className="team-nav-label">Training Modules</span>
+            <span style={{marginLeft:'auto', fontSize:10, opacity:.6}}>{trainingOpen ? '▾' : '▸'}</span>
+          </button>
+
+          {/* Sub-items under Training Modules */}
+          {trainingOpen && (
+            <div className="team-sidebar-sub-menu">
+              <button
+                className={`sub-menu-item ${activeNav === 'support' ? 'active' : ''}`}
+                onClick={() => { setActiveNav('support'); }}
+              >
+                <span className="sub-icon">▦</span>
+                <span>Support Training</span>
+              </button>
+              <button
+                className={`sub-menu-item ${activeNav === 'deployment' ? 'active' : ''}`}
+                onClick={() => { setActiveNav('deployment'); }}
+              >
+                <span className="sub-icon">◈</span>
+                <span>New Deployment</span>
+              </button>
+            </div>
+          )}
         </nav>
         <div className="team-nav" style={{marginTop:'auto', paddingTop:16, borderTop:'1px solid rgba(255,255,255,0.08)'}}>
           <a href="/admin/login" className="team-nav-item" style={{textDecoration:'none'}}>
