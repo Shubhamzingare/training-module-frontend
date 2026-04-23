@@ -348,6 +348,48 @@
   margin: 0;
 }
 
+/* ── Filter bar (deployment tab) ── */
+.td-filter-bar {
+  display: flex;
+  gap: 6px;
+  padding: 10px 16px;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f7fafc;
+  flex-shrink: 0;
+}
+
+.td-filter-btn {
+  padding: 5px 12px;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  font-size: 12px;
+  font-weight: 600;
+  color: #718096;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all .15s;
+}
+
+.td-filter-btn.active {
+  background: #2c3e50;
+  color: white;
+  border-color: #2c3e50;
+}
+
+/* ── Date group header ── */
+.td-date-group-header {
+  padding: 8px 16px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #718096;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  background: #f7fafc;
+  border-bottom: 1px solid #e2e8f0;
+  border-top: 1px solid #e2e8f0;
+}
+
 /* Responsive */
 @media (max-width: 900px) {
   .td-list-panel { width: 220px; }

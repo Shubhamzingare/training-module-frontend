@@ -13,6 +13,7 @@ export default function Home() {
   // Main nav: 'tests' | 'support' | 'deployment'
   const [activeNav,      setActiveNav]      = useState('tests');
   const [trainingOpen,   setTrainingOpen]   = useState(false);
+  const [filterDate,     setFilterDate]     = useState(''); // '' = all, 'latest' = latest batch
 
   // Tests
   const [tests,          setTests]          = useState([]);
@@ -62,6 +63,31 @@ export default function Home() {
       .catch(() => {})
       .finally(() => setModulesLoading(false));
   }, [activeNav]);
+
+  // Group deployment modules by demoDate
+  function groupByDemoDate(mods) {
+    const groups = {};
+    mods.forEach(m => {
+      const key = m.demoDate
+        ? new Date(m.demoDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+        : 'No Date';
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(m);
+    });
+    return Object.entries(groups).sort(([a], [b]) => {
+      if (a === 'No Date') return 1;
+      if (b === 'No Date') return -1;
+      return new Date(b) - new Date(a);
+    });
+  }
+
+  const deploymentGroups = groupByDemoDate(modules);
+  const filteredDeploymentGroups = (() => {
+    if (filterDate === 'latest') {
+      return deploymentGroups.slice(0, 1);
+    }
+    return deploymentGroups;
+  })();
 
   return (
     <div className="team-shell">
@@ -189,6 +215,20 @@ export default function Home() {
                 <span className="td-list-count">{modules.length} modules</span>
               </div>
 
+              {/* Filter bar — deployment only */}
+              {activeNav === 'deployment' && (
+                <div className="td-filter-bar">
+                  <button
+                    className={`td-filter-btn ${filterDate === '' ? 'active' : ''}`}
+                    onClick={() => setFilterDate('')}
+                  >All</button>
+                  <button
+                    className={`td-filter-btn ${filterDate === 'latest' ? 'active' : ''}`}
+                    onClick={() => setFilterDate('latest')}
+                  >Latest</button>
+                </div>
+              )}
+
               {modulesLoading ? (
                 <div className="td-list-shimmer">
                   {[1,2,3,4].map(i => <div key={i} className="td-module-shimmer" />)}
@@ -197,6 +237,42 @@ export default function Home() {
                 <div className="td-list-empty">
                   <p>No active modules yet.</p>
                   <p>Ask your admin to upload and activate content.</p>
+                </div>
+              ) : activeNav === 'deployment' ? (
+                <div className="td-module-list">
+                  {filteredDeploymentGroups.map(([dateLabel, groupMods]) => (
+                    <React.Fragment key={dateLabel}>
+                      <div className="td-date-group-header">
+                        📅 Demo: {dateLabel}
+                      </div>
+                      {groupMods.map(mod => {
+                        const kpCount = mod.keyPoints?.length || 0;
+                        const faqCount = mod.faqs?.length || 0;
+                        const hasFile = !!mod.fileUrl;
+                        const total = kpCount + faqCount + (hasFile ? 1 : 0);
+                        return (
+                          <button
+                            key={mod._id}
+                            className={`td-module-item ${selectedModule?._id === mod._id ? 'active' : ''}`}
+                            onClick={() => setSelectedModule(mod)}
+                          >
+                            <div className="td-module-item-top">
+                              <span className="td-module-icon">
+                                {FILE_ICONS[mod.fileType?.toLowerCase()] || '📄'}
+                              </span>
+                              <span className="td-module-title">{mod.title}</span>
+                            </div>
+                            <div className="td-module-item-meta">
+                              <span className="td-module-cat">{mod.categoryName}</span>
+                              <span className={`td-content-badge ${total > 0 ? 'has-content' : ''}`}>
+                                {total} items
+                              </span>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </React.Fragment>
+                  ))}
                 </div>
               ) : (
                 <div className="td-module-list">

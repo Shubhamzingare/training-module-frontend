@@ -38,6 +38,7 @@ const ModuleManagement = () => {
     description: '',
     fileType: 'pdf',
     file: null,
+    demoDate: '',
   });
 
   // Library tab state
@@ -270,6 +271,9 @@ const ModuleManagement = () => {
     formData.append('description', moduleForm.description);
     formData.append('categoryId', moduleForm.categoryId);
     formData.append('fileType', moduleForm.fileType);
+    if (moduleForm.demoDate) {
+      formData.append('demoDate', moduleForm.demoDate);
+    }
 
     try {
       const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/admin/modules`, {
@@ -288,6 +292,7 @@ const ModuleManagement = () => {
           description: '',
           fileType: 'pdf',
           file: null,
+          demoDate: '',
         });
         setUploadError('');
         fetchData();
@@ -831,6 +836,21 @@ const ModuleManagement = () => {
                   rows="2"
                 />
               </div>
+
+              {/* Show Demo Date only for New Deployment categories */}
+              {moduleForm.moduleType === 'new_deployment' && (
+                <div className="form-group">
+                  <label>Demo Date</label>
+                  <input
+                    type="date"
+                    name="demoDate"
+                    value={moduleForm.demoDate || ''}
+                    onChange={(e) => setModuleForm({ ...moduleForm, demoDate: e.target.value })}
+                    className="form-control"
+                  />
+                  <small>Required for New Deployment modules</small>
+                </div>
+              )}
 
               <div className="form-row">
                 <div className="form-group">
