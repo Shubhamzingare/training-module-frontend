@@ -25,10 +25,16 @@ export default function Home() {
 
   const [openFaq,       setOpenFaq]       = useState(null);
 
-  // Load tests
+  // Load tests — only active ones visible to team
   useEffect(() => {
     fetch(`${BASE}/api/public/tests`)
-      .then(r => r.json()).then(d => setTests(d.data || [])).catch(() => {})
+      .then(r => r.json())
+      .then(d => {
+        // Only show tests with status === 'active'
+        const active = (d.data || []).filter(t => t.status === 'active');
+        setTests(active);
+      })
+      .catch(() => {})
       .finally(() => setTestsLoading(false));
   }, []);
 
@@ -117,22 +123,30 @@ export default function Home() {
 
         <nav className="td-nav">
 
-          {/* Tests */}
+          {/* Tests — locked if no active tests */}
           <button
             className={`td-nav-item ${activeSection==='tests'?'active':''}`}
             onClick={() => { setActiveSection('tests'); setPanelOpen(false); setSelectedMod(null); }}
           >
-            <span className="td-nav-icon">✓</span>
+            <span className="td-nav-icon">{!testsLoading && tests.length === 0 ? '🔒' : '✓'}</span>
             <span>Tests</span>
+            {!testsLoading && tests.length > 0 && (
+              <span style={{marginLeft:'auto',background:'#27ae60',color:'white',fontSize:9,fontWeight:700,padding:'2px 6px',borderRadius:8}}>
+                {tests.length}
+              </span>
+            )}
           </button>
 
-          {/* Support Training */}
+          {/* Support Training — locked if test is active */}
           <button
             className={`td-nav-item ${activeSection==='support'?'active':''}`}
-            onClick={() => setActiveSection('support')}
+            onClick={() => tests.length === 0 ? setActiveSection('support') : setActiveSection('support')}
           >
             <span className="td-nav-icon">▦</span>
             <span>Support Training</span>
+            {!testsLoading && tests.length > 0 && (
+              <span style={{marginLeft:'auto',fontSize:10,color:'rgba(255,255,255,0.4)'}}>🔒</span>
+            )}
           </button>
 
           {/* Support Training categories */}
@@ -282,22 +296,40 @@ export default function Home() {
             </>
           )}
 
-          {/* SUPPORT TRAINING — instruction */}
+          {/* SUPPORT TRAINING */}
           {activeSection === 'support' && !panelOpen && (
-            <div className="td-main-hint">
-              <div className="td-hint-icon">👈</div>
-              <h3>Select a topic from the sidebar</h3>
-              <p>Expand a category to see available training modules</p>
-            </div>
+            tests.length > 0 ? (
+              <div className="td-no-tests">
+                <div className="td-no-tests-icon">🔒</div>
+                <h3>Training Locked</h3>
+                <p>A test is currently active.</p>
+                <p>Training material is locked while a test is in progress.</p>
+              </div>
+            ) : (
+              <div className="td-main-hint">
+                <div className="td-hint-icon">👈</div>
+                <h3>Select a topic from the sidebar</h3>
+                <p>Expand a category to see available training modules</p>
+              </div>
+            )
           )}
 
-          {/* NEW DEPLOYMENT — instruction */}
+          {/* NEW DEPLOYMENT */}
           {activeSection === 'deployment' && !panelOpen && (
-            <div className="td-main-hint">
-              <div className="td-hint-icon">👈</div>
-              <h3>Select a deployment from the sidebar</h3>
-              <p>New deployments are added every 15 days. Expand a date to view content.</p>
-            </div>
+            tests.length > 0 ? (
+              <div className="td-no-tests">
+                <div className="td-no-tests-icon">🔒</div>
+                <h3>Training Locked</h3>
+                <p>A test is currently active.</p>
+                <p>Training material is locked while a test is in progress.</p>
+              </div>
+            ) : (
+              <div className="td-main-hint">
+                <div className="td-hint-icon">👈</div>
+                <h3>Select a deployment from the sidebar</h3>
+                <p>New deployments are added every 15 days. Expand a date to view content.</p>
+              </div>
+            )
           )}
 
         </div>

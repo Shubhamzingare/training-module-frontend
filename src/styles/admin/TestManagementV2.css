@@ -1146,3 +1146,69 @@
 .tm-table th:nth-child(7) { width: 8%; }
 .tm-table th:nth-child(8) { width: 10%; }
 .tm-table th:nth-child(9) { width: 15%; }
+
+/* ── Google Form Mode ── */
+.gf-google-mode {
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.gf-google-mode-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+}
+
+.gf-google-mode-icon { font-size: 28px; flex-shrink: 0; }
+
+.gf-google-mode-title { font-size: 14px; font-weight: 700; color: #15803d; }
+.gf-google-mode-sub   { font-size: 12px; color: #166534; margin-top: 2px; }
+
+.gf-google-mode-actions {
+  margin-left: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-end;
+}
+
+.gf-google-preview-btn {
+  padding: 6px 14px;
+  background: #16a34a;
+  color: white;
+  border-radius: 5px;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 600;
+  transition: background .15s;
+  white-space: nowrap;
+}
+.gf-google-preview-btn:hover { background: #15803d; }
+
+.gf-google-remove-btn {
+  background: none;
+  border: none;
+  font-size: 11px;
+  color: #6b7280;
+  cursor: pointer;
+  font-family: inherit;
+  text-decoration: underline;
+  padding: 0;
+}
+.gf-google-remove-btn:hover { color: #dc2626; }
+
+.gf-google-mode-url {
+  padding: 10px 20px;
+  background: #dcfce7;
+  border-top: 1px solid #86efac;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+.gf-google-mode-url-label { color: #166534; font-weight: 600; flex-shrink: 0; }
+.gf-google-mode-url-val   { color: #15803d; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

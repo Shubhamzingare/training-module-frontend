@@ -154,46 +154,28 @@ const Test = () => {
   if (loading) return <div className="test-loading">Loading test...</div>;
   if (!test)   return <div className="test-error">Test not found.</div>;
 
+  // Google Form test — show form directly, no splash screen
   if (test?.googleFormUrl && !loading) {
+    const embedUrl = test.googleFormUrl.includes('?')
+      ? test.googleFormUrl + '&embedded=true'
+      : test.googleFormUrl + '?embedded=true';
+
     return (
       <div className="test-interface">
         <header className="test-header">
           <div className="header-title"><h1>{test.title}</h1></div>
+          <div className="header-timer" style={{fontSize:13,color:'#718096'}}>
+            Google Form
+          </div>
         </header>
-        <div style={{height:'calc(100vh - 64px)', display:'flex', flexDirection:'column', background:'#f4f6f8'}}>
-          {!sessionStarted ? (
-            <div style={{display:'flex',alignItems:'center',justifyContent:'center',flex:1}}>
-              <div style={{background:'white',borderRadius:10,padding:40,maxWidth:480,textAlign:'center',boxShadow:'0 2px 12px rgba(0,0,0,.1)'}}>
-                <div style={{fontSize:48,marginBottom:16}}>📋</div>
-                <h2 style={{margin:'0 0 8px',color:'#1a202c'}}>{test.title}</h2>
-                <p style={{color:'#718096',margin:'0 0 24px',fontSize:14}}>
-                  {test.description || 'Click below to open the test form'}
-                </p>
-                <div style={{display:'flex',gap:10,justifyContent:'center',flexWrap:'wrap',marginBottom:20}}>
-                  {test.timeLimit && <span style={{padding:'4px 12px',background:'#edf2f7',borderRadius:12,fontSize:12,color:'#2c3e50',fontWeight:600}}>⏱ {test.timeLimit} min</span>}
-                  {test.totalMarks && <span style={{padding:'4px 12px',background:'#edf2f7',borderRadius:12,fontSize:12,color:'#2c3e50',fontWeight:600}}>📝 {test.totalMarks} marks</span>}
-                </div>
-                <button
-                  onClick={() => setSessionStarted(true)}
-                  style={{padding:'12px 32px',background:'#2c3e50',color:'white',border:'none',borderRadius:6,fontSize:15,fontWeight:700,cursor:'pointer',width:'100%'}}
-                >
-                  Start Test →
-                </button>
-              </div>
-            </div>
-          ) : (
-            <iframe
-              src={test.googleFormUrl.includes('forms.gle') || test.googleFormUrl.includes('docs.google.com/forms')
-                ? (test.googleFormUrl.includes('?') ? test.googleFormUrl + '&embedded=true' : test.googleFormUrl + '?embedded=true')
-                : test.googleFormUrl}
-              style={{flex:1,border:'none',width:'100%'}}
-              title={test.title}
-              allow="camera; microphone"
-            >
-              Loading form...
-            </iframe>
-          )}
-        </div>
+        <iframe
+          src={embedUrl}
+          style={{width:'100%', height:'calc(100vh - 64px)', border:'none', display:'block'}}
+          title={test.title}
+          allow="camera; microphone"
+        >
+          Loading form...
+        </iframe>
       </div>
     );
   }

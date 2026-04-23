@@ -562,20 +562,37 @@ export default function TestManagementV2({ mode = 'library', onModeChange }) {
                   </div>
                 </div>
 
-                {/* Google Form URL indicator */}
-                {form.googleFormUrl && (
-                  <div style={{background:'#d1fae5',border:'1px solid #6ee7b7',borderRadius:8,padding:'14px 20px',display:'flex',alignItems:'center',gap:12,margin:'0 0 4px'}}>
-                    <span style={{fontSize:20}}>📋</span>
-                    <div>
-                      <div style={{fontSize:13,fontWeight:700,color:'#065f46'}}>Using Google Form</div>
-                      <div style={{fontSize:12,color:'#047857',marginTop:2}}>Team will see the embedded Google Form. Questions below are optional.</div>
+                {/* Google Form Mode — hides question builder */}
+                {form.googleFormUrl ? (
+                  <div className="gf-google-mode">
+                    <div className="gf-google-mode-header">
+                      <span className="gf-google-mode-icon">📋</span>
+                      <div>
+                        <div className="gf-google-mode-title">Google Form linked</div>
+                        <div className="gf-google-mode-sub">Team will see this form embedded. No questions needed.</div>
+                      </div>
+                      <div className="gf-google-mode-actions">
+                        <a href={form.googleFormUrl} target="_blank" rel="noopener noreferrer" className="gf-google-preview-btn">
+                          Preview Form →
+                        </a>
+                        <button
+                          type="button"
+                          className="gf-google-remove-btn"
+                          onClick={() => setForm(f => ({...f, googleFormUrl: ''}))}
+                        >
+                          Remove & use question builder
+                        </button>
+                      </div>
                     </div>
-                    <a href={form.googleFormUrl} target="_blank" rel="noopener noreferrer" style={{marginLeft:'auto',fontSize:12,color:'#065f46',fontWeight:600}}>Preview →</a>
+                    <div className="gf-google-mode-url">
+                      <span className="gf-google-mode-url-label">Form URL:</span>
+                      <span className="gf-google-mode-url-val">{form.googleFormUrl}</span>
+                    </div>
                   </div>
-                )}
+                ) : null}
 
-                {/* Question cards */}
-                <div className="gf-questions-wrap">
+                {/* Question cards — only shown when NO Google Form URL */}
+                <div className="gf-questions-wrap" style={form.googleFormUrl ? {display:'none'} : {}}>
                   {questions.map((q, idx) => {
                     // Section divider
                     if (q._isSection) {
@@ -625,10 +642,12 @@ export default function TestManagementV2({ mode = 'library', onModeChange }) {
                   })}
                 </div>
 
-                {/* Bottom add question button */}
-                <button className="gf-add-q-bottom" onClick={addQuestion} type="button">
-                  + Add Question
-                </button>
+                {/* Bottom add question button — hidden when Google Form is linked */}
+                {!form.googleFormUrl && (
+                  <button className="gf-add-q-bottom" onClick={addQuestion} type="button">
+                    + Add Question
+                  </button>
+                )}
 
                 {/* Save row */}
                 <div className="gf-save-row">
