@@ -4,27 +4,33 @@ import '../styles/TeamLayout.css';
 import '../styles/TrainingDashboard.css';
 
 const BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-
 const FILE_ICONS = { pdf:'📄', ppt:'📊', pptx:'📊', doc:'📝', docx:'📝', video:'🎥', mp4:'🎥' };
 
 export default function Home() {
   const navigate = useNavigate();
 
-  // Main nav: 'tests' | 'support' | 'deployment'
-  const [activeNav,      setActiveNav]      = useState('tests');
-  const [trainingOpen,   setTrainingOpen]   = useState(false);
-  const [filterDate,     setFilterDate]     = useState(''); // '' = all, 'latest' = latest batch
+  // nav: 'tests' | 'support' | 'deployment'
+  const [activeNav,       setActiveNav]       = useState('tests');
+  const [trainingOpen,    setTrainingOpen]     = useState(false);
 
   // Tests
-  const [tests,          setTests]          = useState([]);
-  const [testsLoading,   setTestsLoading]   = useState(true);
+  const [tests,           setTests]           = useState([]);
+  const [testsLoading,    setTestsLoading]     = useState(true);
 
-  // Training — module list
-  const [modules,        setModules]        = useState([]);
-  const [modulesLoading, setModulesLoading] = useState(false);
-  const [selectedModule, setSelectedModule] = useState(null);
+  // Panel 1 — Category list
+  const [categories,      setCategories]       = useState([]);
+  const [catsLoading,     setCatsLoading]      = useState(false);
+  const [selectedCat,     setSelectedCat]      = useState(null);
 
-  // Load tests on mount
+  // Panel 2 — Module list under selected category
+  const [modules,         setModules]          = useState([]);
+  const [modsLoading,     setModsLoading]      = useState(false);
+  const [selectedModule,  setSelectedModule]   = useState(null);
+
+  // New Deployment filter
+  const [filterDate,      setFilterDate]       = useState('');
+
+  // Load tests once
   useEffect(() => {
     fetch(`${BASE}/api/public/tests`)
       .then(r => r.json())
@@ -33,66 +39,69 @@ export default function Home() {
       .finally(() => setTestsLoading(false));
   }, []);
 
-  // Load modules when nav changes to support or deployment
+  // Load categories when training nav changes
   useEffect(() => {
     if (activeNav !== 'support' && activeNav !== 'deployment') return;
+    setCategories([]);
+    setSelectedCat(null);
     setModules([]);
     setSelectedModule(null);
-    setModulesLoading(true);
+    setFilterDate('');
+    setCatsLoading(true);
 
     const type = activeNav === 'support' ? 'wati_training' : 'new_deployment';
-
-    // Get categories of this type, then get modules for each
     fetch(`${BASE}/api/public/categories`)
       .then(r => r.json())
-      .then(async d => {
-        const cats = (d.data || []).filter(c => c.type === type);
-        // Fetch modules for all categories in parallel
-        const results = await Promise.all(
-          cats.map(cat =>
-            fetch(`${BASE}/api/public/categories/${cat._id}/modules`)
-              .then(r => r.json())
-              .then(md => (md.data || []).map(m => ({ ...m, categoryName: cat.name })))
-              .catch(() => [])
-          )
-        );
-        const allModules = results.flat();
-        setModules(allModules);
-        if (allModules.length > 0) setSelectedModule(allModules[0]);
+      .then(d => {
+        const filtered = (d.data || []).filter(c => c.type === type);
+        setCategories(filtered);
+        if (filtered.length > 0) handleSelectCategory(filtered[0]);
       })
       .catch(() => {})
-      .finally(() => setModulesLoading(false));
-  }, [activeNav]);
+      .finally(() => setCatsLoading(false));
+  }, [activeNav]); // eslint-disable-line
 
-  // Group deployment modules by demoDate
+  // Load modules when category selected
+  function handleSelectCategory(cat) {
+    setSelectedCat(cat);
+    setSelectedModule(null);
+    setModules([]);
+    setModsLoading(true);
+    fetch(`${BASE}/api/public/categories/${cat._id}/modules`)
+      .then(r => r.json())
+      .then(d => {
+        const mods = d.data || [];
+        setModules(mods);
+        if (mods.length > 0) setSelectedModule(mods[0]);
+      })
+      .catch(() => {})
+      .finally(() => setModsLoading(false));
+  }
+
+  // Group by demoDate for New Deployment
   function groupByDemoDate(mods) {
     const groups = {};
     mods.forEach(m => {
       const key = m.demoDate
-        ? new Date(m.demoDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
-        : 'No Date';
+        ? new Date(m.demoDate).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' })
+        : 'No Date Set';
       if (!groups[key]) groups[key] = [];
       groups[key].push(m);
     });
     return Object.entries(groups).sort(([a], [b]) => {
-      if (a === 'No Date') return 1;
-      if (b === 'No Date') return -1;
+      if (a === 'No Date Set') return 1;
+      if (b === 'No Date Set') return -1;
       return new Date(b) - new Date(a);
     });
   }
 
   const deploymentGroups = groupByDemoDate(modules);
-  const filteredDeploymentGroups = (() => {
-    if (filterDate === 'latest') {
-      return deploymentGroups.slice(0, 1);
-    }
-    return deploymentGroups;
-  })();
+  const filteredGroups   = filterDate === 'latest' ? deploymentGroups.slice(0, 1) : deploymentGroups;
 
   return (
     <div className="team-shell">
 
-      {/* ── Left Nav Sidebar ── */}
+      {/* ══ NAV SIDEBAR ══ */}
       <aside className="team-sidebar">
         <div className="team-sidebar-logo">
           <div className="team-sidebar-logo-icon">⬡</div>
@@ -101,39 +110,39 @@ export default function Home() {
             <div className="team-sidebar-logo-sub">Training Portal</div>
           </div>
         </div>
+
         <nav className="team-nav">
           {/* Tests */}
           <button
             className={`team-nav-item ${activeNav === 'tests' ? 'active' : ''}`}
-            onClick={() => setActiveNav('tests')}
+            onClick={() => { setActiveNav('tests'); setTrainingOpen(false); }}
           >
             <span className="team-nav-icon">✓</span>
             <span className="team-nav-label">Tests</span>
           </button>
 
-          {/* Training Modules — collapsible parent */}
+          {/* Training Modules parent */}
           <button
             className={`team-nav-item ${(activeNav === 'support' || activeNav === 'deployment') ? 'active' : ''}`}
             onClick={() => setTrainingOpen(o => !o)}
           >
             <span className="team-nav-icon">▦</span>
             <span className="team-nav-label">Training Modules</span>
-            <span style={{marginLeft:'auto', fontSize:10, opacity:.6}}>{trainingOpen ? '▾' : '▸'}</span>
+            <span style={{marginLeft:'auto',fontSize:10,opacity:.6}}>{trainingOpen ? '▾' : '▸'}</span>
           </button>
 
-          {/* Sub-items under Training Modules */}
           {trainingOpen && (
             <div className="team-sidebar-sub-menu">
               <button
                 className={`sub-menu-item ${activeNav === 'support' ? 'active' : ''}`}
-                onClick={() => { setActiveNav('support'); }}
+                onClick={() => setActiveNav('support')}
               >
                 <span className="sub-icon">▦</span>
                 <span>Support Training</span>
               </button>
               <button
                 className={`sub-menu-item ${activeNav === 'deployment' ? 'active' : ''}`}
-                onClick={() => { setActiveNav('deployment'); }}
+                onClick={() => setActiveNav('deployment')}
               >
                 <span className="sub-icon">◈</span>
                 <span>New Deployment</span>
@@ -141,7 +150,8 @@ export default function Home() {
             </div>
           )}
         </nav>
-        <div className="team-nav" style={{marginTop:'auto', paddingTop:16, borderTop:'1px solid rgba(255,255,255,0.08)'}}>
+
+        <div className="team-nav" style={{marginTop:'auto',paddingTop:16,borderTop:'1px solid rgba(255,255,255,0.08)'}}>
           <a href="/admin/login" className="team-nav-item" style={{textDecoration:'none'}}>
             <span className="team-nav-icon">⚙</span>
             <span className="team-nav-label">Admin</span>
@@ -149,10 +159,10 @@ export default function Home() {
         </div>
       </aside>
 
-      {/* ── Main Area ── */}
+      {/* ══ MAIN ══ */}
       <div className="team-main">
 
-        {/* ════ TESTS TAB ════ */}
+        {/* ── TESTS ── */}
         {activeNav === 'tests' && (
           <>
             <div className="team-topbar">
@@ -164,9 +174,7 @@ export default function Home() {
                 <p>Select a test below to begin your assessment</p>
               </div>
               {testsLoading ? (
-                <div className="team-cards-grid">
-                  {[1,2,3].map(i => <div key={i} className="team-shimmer" />)}
-                </div>
+                <div className="team-cards-grid">{[1,2,3].map(i=><div key={i} className="team-shimmer"/>)}</div>
               ) : tests.length === 0 ? (
                 <div className="team-empty">
                   <div className="team-empty-icon">📋</div>
@@ -177,7 +185,7 @@ export default function Home() {
                 <div className="team-cards-grid">
                   {tests.map(test => (
                     <div key={test._id} className="team-test-card">
-                      <div className="team-test-card-stripe" />
+                      <div className="team-test-card-stripe"/>
                       <div className="team-test-card-body">
                         <div className="team-test-card-head">
                           <div className="team-test-icon">📋</div>
@@ -204,120 +212,105 @@ export default function Home() {
           </>
         )}
 
-        {/* ════ TRAINING TABS (Support / New Deployment) ════ */}
+        {/* ── TRAINING (3-PANEL LAYOUT) ── */}
         {(activeNav === 'support' || activeNav === 'deployment') && (
-          <div className="td-layout">
+          <div className="td-three-panel">
 
-            {/* Module List Panel */}
-            <div className="td-list-panel">
-              <div className="td-list-header">
-                <h3>{activeNav === 'support' ? 'Support Training' : 'New Deployment'}</h3>
-                <span className="td-list-count">{modules.length} modules</span>
+            {/* ── PANEL 1: Category List (Modules in user's terms) ── */}
+            <div className="td-panel td-panel-cats">
+              <div className="td-panel-head">
+                {activeNav === 'support' ? 'Support Training' : 'New Deployment'}
               </div>
 
-              {/* Filter bar — deployment only */}
-              {activeNav === 'deployment' && (
-                <div className="td-filter-bar">
-                  <button
-                    className={`td-filter-btn ${filterDate === '' ? 'active' : ''}`}
-                    onClick={() => setFilterDate('')}
-                  >All</button>
-                  <button
-                    className={`td-filter-btn ${filterDate === 'latest' ? 'active' : ''}`}
-                    onClick={() => setFilterDate('latest')}
-                  >Latest</button>
-                </div>
-              )}
-
-              {modulesLoading ? (
-                <div className="td-list-shimmer">
-                  {[1,2,3,4].map(i => <div key={i} className="td-module-shimmer" />)}
-                </div>
-              ) : modules.length === 0 ? (
-                <div className="td-list-empty">
-                  <p>No active modules yet.</p>
-                  <p>Ask your admin to upload and activate content.</p>
-                </div>
-              ) : activeNav === 'deployment' ? (
-                <div className="td-module-list">
-                  {filteredDeploymentGroups.map(([dateLabel, groupMods]) => (
-                    <React.Fragment key={dateLabel}>
-                      <div className="td-date-group-header">
-                        📅 Demo: {dateLabel}
-                      </div>
-                      {groupMods.map(mod => {
-                        const kpCount = mod.keyPoints?.length || 0;
-                        const faqCount = mod.faqs?.length || 0;
-                        const hasFile = !!mod.fileUrl;
-                        const total = kpCount + faqCount + (hasFile ? 1 : 0);
-                        return (
-                          <button
-                            key={mod._id}
-                            className={`td-module-item ${selectedModule?._id === mod._id ? 'active' : ''}`}
-                            onClick={() => setSelectedModule(mod)}
-                          >
-                            <div className="td-module-item-top">
-                              <span className="td-module-icon">
-                                {FILE_ICONS[mod.fileType?.toLowerCase()] || '📄'}
-                              </span>
-                              <span className="td-module-title">{mod.title}</span>
-                            </div>
-                            <div className="td-module-item-meta">
-                              <span className="td-module-cat">{mod.categoryName}</span>
-                              <span className={`td-content-badge ${total > 0 ? 'has-content' : ''}`}>
-                                {total} items
-                              </span>
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </React.Fragment>
+              {catsLoading ? (
+                <div className="td-panel-shimmer">{[1,2,3,4].map(i=><div key={i} className="td-item-shimmer"/>)}</div>
+              ) : categories.length === 0 ? (
+                <div className="td-panel-empty">No modules available yet.</div>
+              ) : (
+                <div className="td-panel-list">
+                  {categories.map(cat => (
+                    <button
+                      key={cat._id}
+                      className={`td-cat-item ${selectedCat?._id === cat._id ? 'active' : ''}`}
+                      onClick={() => handleSelectCategory(cat)}
+                    >
+                      <span className="td-cat-icon">▦</span>
+                      <span className="td-cat-name">{cat.name}</span>
+                      {selectedCat?._id === cat._id && <span className="td-cat-arrow">›</span>}
+                    </button>
                   ))}
                 </div>
-              ) : (
-                <div className="td-module-list">
-                  {modules.map(mod => {
-                    const kpCount = mod.keyPoints?.length || 0;
-                    const faqCount = mod.faqs?.length || 0;
-                    const hasFile = !!mod.fileUrl;
-                    const total = kpCount + faqCount + (hasFile ? 1 : 0);
-                    return (
-                      <button
-                        key={mod._id}
-                        className={`td-module-item ${selectedModule?._id === mod._id ? 'active' : ''}`}
-                        onClick={() => setSelectedModule(mod)}
-                      >
-                        <div className="td-module-item-top">
-                          <span className="td-module-icon">
-                            {FILE_ICONS[mod.fileType?.toLowerCase()] || '📄'}
-                          </span>
-                          <span className="td-module-title">{mod.title}</span>
-                        </div>
-                        <div className="td-module-item-meta">
-                          <span className="td-module-cat">{mod.categoryName}</span>
-                          <span className={`td-content-badge ${total > 0 ? 'has-content' : ''}`}>
-                            {total} items
-                          </span>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
               )}
             </div>
 
-            {/* Content Area */}
-            <div className="td-content-panel">
-              {!selectedModule ? (
-                <div className="td-select-prompt">
-                  <div className="td-prompt-icon">👈</div>
-                  <h3>Select a module</h3>
-                  <p>Choose a module from the list to view its content</p>
+            {/* ── PANEL 2: Module List (Content items under category) ── */}
+            <div className="td-panel td-panel-mods">
+              {!selectedCat ? (
+                <div className="td-panel-empty-center">
+                  <p>Select a module from the left</p>
                 </div>
               ) : (
-                <ModuleViewer module={selectedModule} />
+                <>
+                  <div className="td-panel-head">
+                    {selectedCat.name}
+                    {activeNav === 'deployment' && modules.length > 0 && (
+                      <div className="td-filter-bar-inline">
+                        <button className={`td-filter-btn ${filterDate===''?'active':''}`} onClick={()=>setFilterDate('')}>All</button>
+                        <button className={`td-filter-btn ${filterDate==='latest'?'active':''}`} onClick={()=>setFilterDate('latest')}>Latest</button>
+                      </div>
+                    )}
+                  </div>
+
+                  {modsLoading ? (
+                    <div className="td-panel-shimmer">{[1,2,3].map(i=><div key={i} className="td-item-shimmer"/>)}</div>
+                  ) : modules.length === 0 ? (
+                    <div className="td-panel-empty">No content in this module yet.</div>
+                  ) : activeNav === 'deployment' ? (
+                    /* Grouped by date for New Deployment */
+                    <div className="td-panel-list">
+                      {filteredGroups.map(([date, mods]) => (
+                        <div key={date}>
+                          <div className="td-date-header">📅 {date}</div>
+                          {mods.map(mod => (
+                            <ModuleItem
+                              key={mod._id}
+                              mod={mod}
+                              selected={selectedModule?._id === mod._id}
+                              onClick={() => setSelectedModule(mod)}
+                            />
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    /* Flat list for Support Training */
+                    <div className="td-panel-list">
+                      {modules.map(mod => (
+                        <ModuleItem
+                          key={mod._id}
+                          mod={mod}
+                          selected={selectedModule?._id === mod._id}
+                          onClick={() => setSelectedModule(mod)}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
             </div>
+
+            {/* ── PANEL 3: Content Viewer ── */}
+            <div className="td-panel td-panel-content">
+              {!selectedModule ? (
+                <div className="td-panel-empty-center">
+                  <div style={{fontSize:40,marginBottom:12}}>👈</div>
+                  <p>Select content to view</p>
+                </div>
+              ) : (
+                <ContentViewer module={selectedModule} />
+              )}
+            </div>
+
           </div>
         )}
       </div>
@@ -325,106 +318,103 @@ export default function Home() {
   );
 }
 
-/* ── Module Content Viewer ── */
-function ModuleViewer({ module }) {
-  const [openFaq, setOpenFaq] = useState(null);
+/* ── Module item in list ── */
+function ModuleItem({ mod, selected, onClick }) {
+  const fileIcon = FILE_ICONS[mod.fileType?.toLowerCase()] || '📄';
+  const kp  = mod.keyPoints?.length || 0;
+  const faq = mod.faqs?.length || 0;
+  const hasFile = !!mod.fileUrl;
+  const total = kp + faq + (hasFile ? 1 : 0);
 
+  return (
+    <button className={`td-mod-item ${selected ? 'active' : ''}`} onClick={onClick}>
+      <div className="td-mod-item-row">
+        <span className="td-mod-icon">{fileIcon}</span>
+        <span className="td-mod-name">{mod.title}</span>
+      </div>
+      <div className="td-mod-meta">
+        <span className={`td-content-badge ${total > 0 ? 'has-content' : ''}`}>
+          {total > 0 ? `${total} items` : 'No content'}
+        </span>
+      </div>
+    </button>
+  );
+}
+
+/* ── Content viewer panel ── */
+function ContentViewer({ module }) {
+  const [openFaq, setOpenFaq] = useState(null);
+  const fileIcon = FILE_ICONS[module.fileType?.toLowerCase()] || '📎';
   const kpCount  = module.keyPoints?.length || 0;
   const faqCount = module.faqs?.length || 0;
   const hasFile  = !!module.fileUrl;
-  const fileIcon = FILE_ICONS[module.fileType?.toLowerCase()] || '📎';
 
   return (
-    <div className="td-viewer">
+    <div className="td-viewer-wrap">
       {/* Header */}
-      <div className="td-viewer-header">
-        <div className="td-viewer-badge">
-          {fileIcon} {module.fileType?.toUpperCase() || 'MODULE'}
-        </div>
+      <div className="td-viewer-head-bar">
+        <span className="td-viewer-badge">{fileIcon} {module.fileType?.toUpperCase() || 'MODULE'}</span>
         <h2 className="td-viewer-title">{module.title}</h2>
-        {module.description && (
-          <p className="td-viewer-desc">{module.description}</p>
-        )}
-        <div className="td-viewer-stats">
-          <div className={`td-stat-chip ${kpCount > 0 ? 'active' : ''}`}>
-            📌 {kpCount} Key Points
-          </div>
-          <div className={`td-stat-chip ${faqCount > 0 ? 'active' : ''}`}>
-            ❓ {faqCount} FAQs
-          </div>
-          {hasFile && (
-            <div className="td-stat-chip active">
-              {fileIcon} 1 File
-            </div>
-          )}
+        {module.description && <p className="td-viewer-desc">{module.description}</p>}
+        <div className="td-viewer-chips">
+          <span className={`td-stat-chip ${kpCount>0?'active':''}`}>📌 {kpCount} Key Points</span>
+          <span className={`td-stat-chip ${faqCount>0?'active':''}`}>❓ {faqCount} FAQs</span>
+          {hasFile && <span className="td-stat-chip active">{fileIcon} File Available</span>}
         </div>
       </div>
 
-      {/* File Download */}
-      {hasFile && (
-        <div className="td-section">
-          <div className="td-section-head">Training Material</div>
-          <div className="td-file-row">
-            <div className="td-file-info">
-              <span className="td-file-icon">{fileIcon}</span>
-              <div>
-                <div className="td-file-name">{module.title}</div>
-                <div className="td-file-type">{module.fileType?.toUpperCase()} File</div>
-              </div>
-            </div>
-            <a
-              href={module.fileUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="td-view-btn"
-            >
-              View / Download
-            </a>
-          </div>
-        </div>
-      )}
-
-      {/* Key Points */}
-      <div className="td-section">
-        <div className="td-section-head">Key Points</div>
-        {kpCount > 0 ? (
-          <ul className="td-key-points">
-            {module.keyPoints.map((pt, i) => (
-              <li key={i} className="td-key-point">
-                <span className="td-kp-num">{i + 1}</span>
-                <span className="td-kp-text">{pt}</span>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="td-empty-text">Key points will appear here once content is generated.</p>
-        )}
-      </div>
-
-      {/* FAQs */}
-      <div className="td-section">
-        <div className="td-section-head">FAQs</div>
-        {faqCount > 0 ? (
-          <div className="td-faqs">
-            {module.faqs.map((faq, i) => (
-              <div
-                key={i}
-                className={`td-faq ${openFaq === i ? 'open' : ''}`}
-                onClick={() => setOpenFaq(openFaq === i ? null : i)}
-              >
-                <div className="td-faq-q">
-                  <span>{faq.question}</span>
-                  <span className="td-faq-arrow">{openFaq === i ? '▲' : '▼'}</span>
+      <div className="td-viewer-sections">
+        {/* File */}
+        {hasFile && (
+          <div className="td-section">
+            <div className="td-section-head">Training Material</div>
+            <div className="td-file-row">
+              <div className="td-file-info">
+                <span className="td-file-icon">{fileIcon}</span>
+                <div>
+                  <div className="td-file-name">{module.title}</div>
+                  <div className="td-file-type">{module.fileType?.toUpperCase()}</div>
                 </div>
-                {openFaq === i && (
-                  <div className="td-faq-a">{faq.answer}</div>
-                )}
               </div>
-            ))}
+              <a href={module.fileUrl} target="_blank" rel="noopener noreferrer" className="td-view-btn">
+                View / Download
+              </a>
+            </div>
           </div>
-        ) : (
-          <p className="td-empty-text">FAQs will appear here once content is generated.</p>
         )}
+
+        {/* Key Points */}
+        <div className="td-section">
+          <div className="td-section-head">Key Points</div>
+          {kpCount > 0 ? (
+            <ul className="td-key-points">
+              {module.keyPoints.map((pt, i) => (
+                <li key={i} className="td-key-point">
+                  <span className="td-kp-num">{i+1}</span>
+                  <span className="td-kp-text">{pt}</span>
+                </li>
+              ))}
+            </ul>
+          ) : <p className="td-empty-text">Key points will appear once content is generated.</p>}
+        </div>
+
+        {/* FAQs */}
+        <div className="td-section">
+          <div className="td-section-head">FAQs</div>
+          {faqCount > 0 ? (
+            <div className="td-faqs">
+              {module.faqs.map((faq, i) => (
+                <div key={i} className={`td-faq ${openFaq===i?'open':''}`} onClick={()=>setOpenFaq(openFaq===i?null:i)}>
+                  <div className="td-faq-q">
+                    <span>{faq.question}</span>
+                    <span className="td-faq-arrow">{openFaq===i?'▲':'▼'}</span>
+                  </div>
+                  {openFaq===i && <div className="td-faq-a">{faq.answer}</div>}
+                </div>
+              ))}
+            </div>
+          ) : <p className="td-empty-text">FAQs will appear once content is generated.</p>}
+        </div>
       </div>
     </div>
   );
