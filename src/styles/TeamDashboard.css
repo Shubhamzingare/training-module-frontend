@@ -283,3 +283,22 @@
   .td-sidebar { width: 200px; }
   .td-content-panel { width: 100vw; right: -100vw; }
 }
+
+/* No tests locked state */
+.td-no-tests {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  text-align: center;
+  padding: 40px 24px;
+  background: white;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  max-width: 480px;
+  margin: 0 auto;
+}
+.td-no-tests-icon { font-size: 56px; margin-bottom: 16px; }
+.td-no-tests h3 { font-size: 20px; font-weight: 700; color: #2c3e50; margin: 0 0 10px; }
+.td-no-tests p  { font-size: 14px; color: #718096; margin: 0 0 6px; line-height: 1.5; }
